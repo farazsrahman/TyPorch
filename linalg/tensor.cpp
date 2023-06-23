@@ -1,5 +1,5 @@
-#include <math.h>
 #include "tensor.h"
+#include <math.h>
 
 #define MAXCHAR 100
 #define SAVE_DIR "saved"
