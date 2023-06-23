@@ -31,6 +31,9 @@
 *.out
 *.app
 
+#VSCode settings
+/.vscode
+
 #CMake Git Ignore
 CMakeLists.txt.user
 CMakeCache.txt
