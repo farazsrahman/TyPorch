@@ -6,18 +6,16 @@ using std::vector;
 
 Matrix::Matrix(int i_rows, int i_cols) {
 
-    numberOfDims = 2;
+    shape.resize(2);
+    distToAdjacentEntry.resize(2);
 
-    shape = new int[numberOfDims];
     shape[0] = i_rows;
     shape[1] = i_cols;
 
-    distToAdjacentEntry = new int[numberOfDims];
     distToAdjacentEntry[0] = i_cols;
     distToAdjacentEntry[1] = 1;
 
-    size = i_rows * i_cols;
-    entries = new double[size];
+    entries.resize(i_rows * i_cols);
 
 }
 

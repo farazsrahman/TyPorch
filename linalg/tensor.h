@@ -5,17 +5,20 @@
 #include <string>
 #include <vector>
 
-using std::string, std::vector;
+using std::string;
+using std::vector;
 
 class Tensor {
 
     protected:
 
-        int numberOfDims;
-        int size;
+        // no longer need these because we are using vectors that store size
 
-        double* entries; 
-        int* shape;
+        // int numberOfDims;
+        // int size;
+
+        vector<double> entries; 
+        vector<int> shape;
 
         /**
          * @brief This array caches the number of entries to jump
@@ -23,17 +26,7 @@ class Tensor {
          * This information will help getIndexOfCoord.
          * 
          */
-        int* distToAdjacentEntry;
-
-        /**
-         * @brief takes in a coordinate vector and returns the index in entries
-         * 
-         * @param coord 
-         * @return int 
-         */
-        int getIndexOfCoord(vector<int> coord) const;
-
-        vector<int> getCoordOfIndex(int index) const;
+        vector<int> distToAdjacentEntry;
 
         /**
          * @brief default constructor for derived classes
@@ -43,8 +36,24 @@ class Tensor {
 
     public:
 
-        // CONSTRUCTORS / DESTRUCTORS
+        // Public for testing purposes
 
+        /**
+         * @brief Get the Coord Of Index object
+         * 
+         * @param index 
+         * @return vector<int> 
+         */
+        vector<int> getCoordOfIndex(int index) const;
+        /**
+         * @brief Get the Index Of Coord object
+         * 
+         * @param coord 
+         * @return int 
+         */
+        int getIndexOfCoord(vector<int> coord) const; 
+
+        // CONSTRUCTORS / DESTRUCTORS
 
         /**
          * @brief Construct a new Tensor object
@@ -52,7 +61,7 @@ class Tensor {
          * @param i_dims number of dimensions (i.e. 2 for marix)
          * @param i_shape specified number entries for each dimension
          */
-        Tensor(int i_dims, int* i_shape); // constructor that takes rows/calls and sets to fills Tensor with 0's
+        Tensor(vector<int> i_shape); // constructor that takes rows/calls and sets to fills Tensor with 0's
         
         /**
          * @brief Construct a new deep copied Tensor object
@@ -67,7 +76,7 @@ class Tensor {
          * @param file_name filename in the Tensor_SAVE_DIR 
          * for Tensor data to be loaded from
          */
-        Tensor(string file_string); // load from file
+        void loadFrom(string file_string); // load from file
         
         /**
          * @brief saves Tensor with name file_name in TENSOR_SAVE_DIR
@@ -75,6 +84,7 @@ class Tensor {
          * @param file_name 
          */
         void saveAs(string file_string);
+
         /**
          * @brief Destroy the Tensor object
          * deallocated memory for the entries of the Tensor
@@ -160,7 +170,7 @@ class Tensor {
          * @param other 
          * @return Tensor& 
          */
-        Tensor& operator=(const Tensor& other);
+        void operator=(const Tensor& other);
         /**
          * @brief simple Tensor addition where matrices are
          * of the same size

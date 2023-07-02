@@ -5,6 +5,7 @@
 #include <string>
 
 #include "tensor.h"
+
 using std::string;
 
 
@@ -16,7 +17,7 @@ class Matrix : public Tensor {
         Matrix(int i_rows, int i_cols);
         Matrix(const Matrix& original);
         
-        Matrix(string file_name);
+        void loadFrom(string file_name);
         void saveAs(string file_name);
       
         // IO
@@ -34,7 +35,6 @@ class Matrix : public Tensor {
          * @return Matrix 
          */
         Matrix matMul() const;
-
 
         // UNARY OPERATORS
         /**
@@ -62,8 +62,5 @@ class Matrix : public Tensor {
 
 
 };
-
-
-
 
 #endif

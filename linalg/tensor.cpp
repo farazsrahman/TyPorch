@@ -5,6 +5,7 @@
 #define SAVE_DIR "saved"
 
 using std::string;
+using std::cout;
 
 // CONSTRUCTORS / DESTRUCTORS
 
@@ -12,55 +13,34 @@ Tensor::Tensor() {
     // all members of tensor are protected or public so the sub classes construcor
     // can handle the rest
 }
-Tensor::Tensor(int i_dims, int* i_shape) {
+Tensor::Tensor(vector<int> i_shape) {
 
-    numberOfDims = i_dims;
+    shape = i_shape; // shallow copy
 
-    shape = new int[i_dims];
-    distToAdjacentEntry = new int[i_dims];
-    
+    distToAdjacentEntry.resize(shape.size());
 
     int dist = 1;
 
-    // we are going to iterate down rows, and save the number entries
-    // in the sub-tensor starting from dimension i onward to distToAdjacentEntry 
-    // in order to help with getIndexOfCoord() later on.
-    for(int i = numberOfDims-1; i >= 0; i--) {
-
+    // the product of all dimensions to the right of the nth dimension will 
+    // be cached to help with retrieving indices from coords and vice versa
+    for(int i = shape.size()-1; i >= 0; i--) {
         distToAdjacentEntry[i] = dist;
         dist *= shape[i];
-    
     }
 
-    // after the iteration the final value of dist will be the 
-    // cumalative product of all the shape values
-    // this is the overall size of our tensor
-    size = dist; // think of dist as the number of spaces to jump to get past our entries array
-
-    entries = new double[size]; // 1d representation of n-dimensional matrix
-
+    entries.resize(dist); 
 }
+
 Tensor::Tensor(const Tensor& original) {
 
-    numberOfDims = original.numberOfDims;
-    size = original.size;
+    // shallow copies 
+    shape = original.shape;
+    distToAdjacentEntry = original.distToAdjacentEntry;
+    entries = original.entries;
 
-    shape = new int[numberOfDims];
-    distToAdjacentEntry = new int[numberOfDims];
-    entries = new double[size];
+} // copy constructor (use =operator for already declared tensors)
 
-    for(int i = 0; i < numberOfDims; i++) {
-        shape[i] = original.shape[i];
-        distToAdjacentEntry[i] = original.distToAdjacentEntry[i];
-    }
-
-    for(int i = 0; i < size; i++) {
-        entries[i] = original.entries[i];
-    }
-
-} // copy constructor (auto invoked when using equal sign)
-
-Tensor::Tensor(string file_string) {
+void Tensor::loadFrom(string file_string) {
 
     // im goin to cry...
     printf("ERROR: Tensor load not implemented");
@@ -77,14 +57,7 @@ void Tensor::saveAs(string file_string) {
 
 Tensor::~Tensor() {
 
-    // items to deallocate
-
-    // shape
-    delete[] shape;
-    // entries
-    delete[] entries;
-    // distToAdjacentEntry
-    delete[] distToAdjacentEntry;
+    // all objects are simple types or vectors, so memory is already managed
 
 }
 
@@ -93,19 +66,33 @@ Tensor::~Tensor() {
 int Tensor::getIndexOfCoord(vector<int> coord) const {
 
     int index = 0;
-    for(int i = 0; i < numberOfDims; i++) {
-        index += coord[i] + distToAdjacentEntry[i];
+
+    for(int dimension = 0; dimension < shape.size(); dimension++) {
+
+        // input error checjubg
+        if(coord[dimension] >= shape[dimension] || coord[dimension] < 0) {
+            printf("ERROR: input coord to getIndexOfCoord() out of bounds\n");
+            exit(EXIT_FAILURE);
+        }
+
+        index += coord[dimension] * distToAdjacentEntry[dimension];
     }
 
     return index;
 }
 vector<int> Tensor::getCoordOfIndex(int index) const {
 
-    vector<int> coord;
+    vector<int> coord; coord.resize(shape.size());
 
-    for(int dimension = 0; dimension < numberOfDims; dimension++) {
+    if(index >= entries.size() || index < 0) {
+        printf("ERROR: input index to getCoordOfIndex() out of bounds\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for(int dimension = 0; dimension < shape.size(); dimension++) {
 
         coord[dimension] = index / distToAdjacentEntry[dimension];
+        // cout << "for loop iter\n" << coord[dimension] << "\n";
         index %= distToAdjacentEntry[dimension];
 
     }
@@ -115,7 +102,7 @@ vector<int> Tensor::getCoordOfIndex(int index) const {
 
 void Tensor::setEntry(vector<int> coord, double v) {
 
-    if(coord.size() != numberOfDims) {
+    if(coord.size() != shape.size()) {
         printf("ERROR: input coord to setEntry() had a dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
@@ -125,7 +112,7 @@ void Tensor::setEntry(vector<int> coord, double v) {
 }
 double Tensor::getEntry(vector<int> coord) const {
 
-    if(coord.size() != numberOfDims) {
+    if(coord.size() != shape.size()) {
         printf("ERROR: input coord to getEntry() had a dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
@@ -135,43 +122,37 @@ double Tensor::getEntry(vector<int> coord) const {
 
 void Tensor::print() const {
 
-    // this print will format the output as follows
-    // n = numberOfDims
-
-    // a1 x a2 x ... x a(n-1) x 0 x
-    // { row of all numbers with fixed coordinates a1 ... a(n-1) }
-    // ^^ this organization is easy as all the items are 
-
-
-    // ... so on for all combinations of a1 x ... x a(n-1)
-
-    int sizeLastDim = shape[numberOfDims-1];
+    int sizeLastDim = shape[shape.size()-1];
+    vector<int> coord;
     
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
 
         // everytime we complete a "row"
         if(i % sizeLastDim == 0) {
-            printf("\n\n ");
-            for (const int& coordEntry : getCoordOfIndex(i)) {
-                printf("%d x ", coordEntry);
+            
+            cout << "\n\n";
+            coord = getCoordOfIndex(i);
+
+            for(int c = 0; c < shape.size() - 1; c++) {
+                cout << coord[c] << " x ";
             }
-            printf("\n");
+            cout << "_\n";
         }
 
         // printing the ith entry
         printf("%1.3f  ", entries[i]);
-
+ 
     }
+    cout << "\n";
 
 
 }
-
 
 // IN-PLACE METHODS - These methods are very straightforward thanks to 1d entries array
 
 void Tensor::fill(double v) {
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         entries[i] = v;
     }
 
@@ -195,7 +176,7 @@ void Tensor::randomize(int n) {
 	double min = -1.0 / sqrt(n);
 	double max = 1.0 / sqrt(n);
 	
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         entries[i] = uniform_distribution(min, max);
     } 
 }
@@ -203,11 +184,11 @@ void Tensor::randomize(int n) {
 // EQUALITY OPERATORS
 
 bool Tensor::sameShape(const Tensor& other) const {
-    if(numberOfDims != other.numberOfDims) {
+    if(shape.size() != other.shape.size()) {
         return false;
     }
 
-    for(int i = 0; i < numberOfDims; i++) {
+    for(int i = 0; i < shape.size(); i++) {
         if(shape[i] != other.shape[i]) {
             return false;
         }
@@ -223,7 +204,7 @@ bool Tensor::operator==(const Tensor& other) const {
 
     // TODO: ADD APROXIMATELY SAME FEATURE?
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         if(entries[i] != other.entries[i]) {
             return false;
         }
@@ -234,29 +215,12 @@ bool Tensor::operator==(const Tensor& other) const {
 
 // TENSOR - TENSOR BINARY OPERATORS
 
-Tensor& Tensor::operator=(const Tensor& other) {
+void Tensor::operator=(const Tensor& original) {
 
-    // deallocation
-    delete[] shape;
-    delete[] entries;
-    delete[] distToAdjacentEntry;
-
-    numberOfDims = other.numberOfDims;
-    size = other.size;
-
-    shape = new int[numberOfDims];
-    distToAdjacentEntry = new int[numberOfDims];
-
-    shape = new int[size];
-
-    for(int i = 0; i < numberOfDims; i++) {
-        shape[i] = other.shape[i];
-        distToAdjacentEntry[i] = other.distToAdjacentEntry[i];
-    }
-
-    for(int i = 0; i < size; i++) {
-        entries[i] = other.entries[i];
-    }
+    // shallow copies 
+    shape = original.shape;
+    distToAdjacentEntry = original.distToAdjacentEntry;
+    entries = original.entries;
 
 }
 Tensor Tensor::operator+(const Tensor& other) const {
@@ -266,9 +230,9 @@ Tensor Tensor::operator+(const Tensor& other) const {
         exit(EXIT_FAILURE);
     }
 
-    Tensor result(numberOfDims, shape);
+    Tensor result(shape);
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = entries[i] + other.entries[i];
     }
 
@@ -281,9 +245,9 @@ Tensor Tensor::operator-(const Tensor& other) const {
         exit(EXIT_FAILURE);
     }
 
-    Tensor result(numberOfDims, shape);
+    Tensor result(shape);
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = entries[i] - other.entries[i];
     }
 
@@ -297,9 +261,9 @@ Tensor Tensor::operator*(const Tensor& other) const {
         exit(EXIT_FAILURE);
     }
 
-    Tensor result(numberOfDims, shape);
+    Tensor result(shape);
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = entries[i] * other.entries[i];
     }
 
@@ -313,9 +277,9 @@ Tensor Tensor::operator/(const Tensor& other) const {
         exit(EXIT_FAILURE);
     }
 
-    Tensor result(numberOfDims, shape);
+    Tensor result(shape);
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = entries[i] * other.entries[i];
     }
 
@@ -328,9 +292,9 @@ Tensor Tensor::operator/(const Tensor& other) const {
 
 Tensor Tensor::scaleBy(double v) const {
 
-    Tensor result(numberOfDims, shape);
+    Tensor result(shape);
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = entries[i] * v;
     }
     return result;
@@ -345,9 +309,9 @@ Tensor operator*(double v, const Tensor& A) {
 
 Tensor Tensor::addScalar(double v) const {
     
-    Tensor result(numberOfDims, shape);
+    Tensor result(shape);
 
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = entries[i] + v;
     }
     return result;
@@ -362,8 +326,8 @@ Tensor operator+(double v, const Tensor& A) {
 
 Tensor Tensor::apply(double (*func)(double)) const {
 
-    Tensor result(numberOfDims, shape);
-    for(int i = 0; i < size; i++) {
+    Tensor result(shape);
+    for(int i = 0; i < entries.size(); i++) {
         result.entries[i] = (*func)(entries[i]);
     }
 
