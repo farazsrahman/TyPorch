@@ -119,6 +119,9 @@ double Tensor::getEntry(vector<int> coord) const {
 
     return entries[getIndexOfCoord(coord)];
 }
+int Tensor::size() {
+    return entries.size();
+}
 
 void Tensor::print() const {
 
@@ -212,8 +215,12 @@ bool Tensor::operator==(const Tensor& other) const {
 
     return true;
 }
+bool Tensor::operator!=(const Tensor& other) const {
+    
+    return !(*this == other); // * is dereferencing this
+}
 
-// TENSOR - TENSOR BINARY OPERATORS
+// (TENSOR x TENSOR) BINARY OPERATORS
 
 void Tensor::operator=(const Tensor& original) {
 
@@ -280,7 +287,17 @@ Tensor Tensor::operator/(const Tensor& other) const {
     Tensor result(shape);
 
     for(int i = 0; i < entries.size(); i++) {
-        result.entries[i] = entries[i] * other.entries[i];
+
+        // if dividing by zero, approx with the smallest possible float
+        if(other.entries[i] == 0) {
+            cout << "0 approx used\n";
+            result.entries[i] = entries[i] / std::numeric_limits<float>::min();
+
+        } else {
+            result.entries[i] = entries[i] / other.entries[i];
+
+        }
+
     }
 
     return result;
@@ -288,7 +305,7 @@ Tensor Tensor::operator/(const Tensor& other) const {
 }
 
 
-// TENSOR - SCALAR BINARY OPERATORS
+// (TENSOR x SCALAR) BINARY OPERATORS
 
 Tensor Tensor::scaleBy(double v) const {
 
@@ -306,6 +323,9 @@ Tensor operator*(const Tensor& A, double v) {
 Tensor operator*(double v, const Tensor& A) {
     return A.scaleBy(v);
 }
+Tensor Tensor::operator/(double v) {
+    return scaleBy((1/v));
+}
 
 Tensor Tensor::addScalar(double v) const {
     
@@ -322,6 +342,9 @@ Tensor operator+(const Tensor& A, double v) {
 }
 Tensor operator+(double v, const Tensor& A) {
     return A.addScalar(v);
+}
+Tensor Tensor::operator-(double v) {
+    return addScalar(-1*v);
 }
 
 Tensor Tensor::apply(double (*func)(double)) const {

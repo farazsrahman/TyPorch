@@ -13,7 +13,6 @@ class Tensor {
     protected:
 
         // no longer need these because we are using vectors that store size
-
         // int numberOfDims;
         // int size;
 
@@ -114,6 +113,12 @@ class Tensor {
          */
         virtual double getEntry(vector<int> coord) const;
         /**
+         * @brief Get the number of entries in the tensor
+         * 
+         * @return int 
+         */
+        int size();
+        /**
          * @brief neatly prints matrix values to console
          * 
          */
@@ -158,10 +163,15 @@ class Tensor {
          * @return bool 
          */
         bool operator==(const Tensor& other) const;
+        /**
+         * @brief opposite of == operator
+         * 
+         */
+        bool operator!=(const Tensor& other) const;
 
 
 
-        // TENSOR - TENSOR BINARY OPERATORS
+        // BINARY OPERATORS 
         /**
          * @brief Override of assignment operator. This ensures that the previous
          * memory allocation for the entries are deallocated. And that all the 
@@ -235,6 +245,15 @@ class Tensor {
          */
         friend Tensor operator*(double v, const Tensor& A);
         /**
+         * @brief divide scalar
+         * 
+         * @param v 
+         * @return Tensor 
+         */
+        Tensor operator/(double v);
+
+
+        /**
          * @brief returns new summed Tensor
          * 
          * this is NOT IN PLACE
@@ -263,6 +282,13 @@ class Tensor {
          * @return Tensor 
          */
         friend Tensor operator+(double v, const Tensor& A);
+        /**
+         * @brief subtract scalar
+         * 
+         * @param v 
+         * @return Tensor 
+         */
+        Tensor operator-(double v);
 
         /**
          * @brief apply returns a matrix of the same size
@@ -272,7 +298,6 @@ class Tensor {
          * @return Matrix 
          */
         Tensor apply(double (*func)(double)) const;
-
 
 };
 
