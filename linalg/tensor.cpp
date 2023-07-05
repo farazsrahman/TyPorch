@@ -1,4 +1,5 @@
-#include "tensor.h"
+#include "linalg.h"
+
 #include <math.h>
 
 #define MAXCHAR 100
@@ -119,9 +120,13 @@ double Tensor::getEntry(vector<int> coord) const {
 
     return entries[getIndexOfCoord(coord)];
 }
-int Tensor::size() {
+int Tensor::getSize() const {
     return entries.size();
 }
+int Tensor::getDimensionality() const {
+    return shape.size();
+}
+
 
 void Tensor::print() const {
 
@@ -323,7 +328,7 @@ Tensor operator*(const Tensor& A, double v) {
 Tensor operator*(double v, const Tensor& A) {
     return A.scaleBy(v);
 }
-Tensor Tensor::operator/(double v) {
+Tensor Tensor::operator/(double v) const {
     return scaleBy((1/v));
 }
 
@@ -343,9 +348,12 @@ Tensor operator+(const Tensor& A, double v) {
 Tensor operator+(double v, const Tensor& A) {
     return A.addScalar(v);
 }
-Tensor Tensor::operator-(double v) {
+Tensor Tensor::operator-(double v) const {
     return addScalar(-1*v);
 }
+
+
+// Unary Operators
 
 Tensor Tensor::apply(double (*func)(double)) const {
 
@@ -357,3 +365,6 @@ Tensor Tensor::apply(double (*func)(double)) const {
     return result;
 
 }
+
+
+

@@ -1,5 +1,4 @@
-#include "./../matrix.h"
-#include "./../tensor.h"
+#include "./../linalg.h"
 #include <vector>
 #include <./gtest/gtest.h> // this shows up as an error but it shouldnt...
                             // avoid clicking here..
@@ -98,7 +97,7 @@ TEST(EqualityOperators, testStructuralEquality) {
   Tensor b({2, 2}); 
   Tensor c({2, 2}); 
 
-  for(int i = 0; i < b.size(); i++) {
+  for(int i = 0; i < b.getSize(); i++) {
     b.setEntry(b.getCoordOfIndex(i), i);
     c.setEntry(c.getCoordOfIndex(i), i);
   }
@@ -124,7 +123,7 @@ TEST(BinaryTensorOperators, testAdd) {
   Tensor d({2, 2});
   Tensor e({2, 2});
 
-  for(int i = 0; i < b.size(); i++) {
+  for(int i = 0; i < b.getSize(); i++) {
     a.setEntry(c.getCoordOfIndex(i), i);
     b.setEntry(c.getCoordOfIndex(i), i);
     c.setEntry(c.getCoordOfIndex(i), 1);
@@ -153,7 +152,7 @@ TEST(BinaryTensorOperators, testSubtract) {
   Tensor d({2, 2});
   Tensor e({2, 2});
 
-  for(int i = 0; i < b.size(); i++) {
+  for(int i = 0; i < b.getSize(); i++) {
     a.setEntry(c.getCoordOfIndex(i), i);
     b.setEntry(c.getCoordOfIndex(i), i);
     c.setEntry(c.getCoordOfIndex(i), 1);
@@ -182,7 +181,7 @@ TEST(BinaryTensorOperators, testMultiply) {
   Tensor d({2, 2});
   Tensor e({2, 2});
 
-  for(int i = 0; i < b.size(); i++) {
+  for(int i = 0; i < b.getSize(); i++) {
     a.setEntry(c.getCoordOfIndex(i), i);
     b.setEntry(c.getCoordOfIndex(i), i);
     c.setEntry(c.getCoordOfIndex(i), 2);
@@ -213,7 +212,7 @@ TEST(BinaryTensorOperators, testDivide) {
   Tensor e({2, 2});
   Tensor z({2, 2}); // all 1s but 0 in in top left
 
-  for(int i = 0; i < b.size(); i++) {
+  for(int i = 0; i < b.getSize(); i++) {
     a.setEntry(c.getCoordOfIndex(i), (i+1));
     b.setEntry(c.getCoordOfIndex(i), (i+1));
     c.setEntry(c.getCoordOfIndex(i), 2);
@@ -242,7 +241,7 @@ TEST(BinaryTensorOperators, testApply) {
   Tensor c({2, 2}); 
 
 
-  for(int i = 0; i < b.size(); i++) {
+  for(int i = 0; i < b.getSize(); i++) {
     a.setEntry(c.getCoordOfIndex(i), i);
     b.setEntry(c.getCoordOfIndex(i), i*i / 2.0);
   }
@@ -288,3 +287,74 @@ TEST(EncapsulationTests, testCopyConstructorAndAssignmentOperator) {
 
 }
 
+// MATRIX TESTS
+TEST(MatrixTests, testMatrixMultiply) {
+  Matrix a(2, 2);
+  Matrix b(2, 2);
+  Matrix c(2, 2);
+  Matrix d(3, 3);
+
+  for(int i = 0; i < 4; i++) {
+    a.setEntry(a.getCoordOfIndex(i), i);
+    b.setEntry(b.getCoordOfIndex(i), i-1);
+  }
+
+  c.setEntry(c.getCoordOfIndex(0), 1);
+  c.setEntry(c.getCoordOfIndex(1), 2);
+  c.setEntry(c.getCoordOfIndex(2), 1);
+  c.setEntry(c.getCoordOfIndex(3), 6);
+
+  EXPECT_TRUE(a.matMul(b) == c);
+  EXPECT_EXIT(a.matMul(d), ::testing::ExitedWithCode(1), ".*");
+
+}
+TEST(MatrixTests, testTransposeFail) {
+
+  Matrix a(2, 3);
+  EXPECT_EXIT(a.transpose(), ::testing::ExitedWithCode(1), ".*");
+
+
+}
+TEST(MatrixTests, testTranspose) {
+  Matrix a(3, 3);
+  Matrix b(3, 3);
+
+  int i = 0;
+  for(int r = 0; r < 3; r++) {
+        for(int c = 0; c < 3; c++) {  
+            a.setEntry({r, c}, i);
+            b.setEntry({c, r}, i);
+            i++;
+        }
+    }
+
+    EXPECT_TRUE(a.transpose() == b);
+
+
+}
+
+// FLATTEN TEST
+TEST(FlattenTest, testFlatten) {
+
+  Tensor t({3, 3, 3});
+
+  for(int i = 0; i < t.getSize(); i++) {
+    t.setEntry(t.getCoordOfIndex(i), i);
+  }
+
+  Matrix c = flatten(t, 1);
+  Matrix r = flatten(t, 0);
+
+
+  EXPECT_EQ(c.getDimensionality(), 2);
+  EXPECT_EQ(r.getDimensionality(), 2);
+  EXPECT_EQ(r.getNumRows(), 1);
+  EXPECT_EQ(c.getNumCols(), 1);
+
+
+for(int i = 0; i < t.getSize(); i++) {
+  EXPECT_TRUE(t.getEntry(t.getCoordOfIndex(i)) == 
+              c.getEntry(c.getCoordOfIndex(i)));
+}
+
+}

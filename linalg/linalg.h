@@ -117,7 +117,13 @@ class Tensor {
          * 
          * @return int 
          */
-        int size();
+        int getSize() const;
+        /**
+         * @brief Get the Dimensionality object
+         * 
+         * @return int 
+         */
+        int getDimensionality() const;
         /**
          * @brief neatly prints matrix values to console
          * 
@@ -250,7 +256,7 @@ class Tensor {
          * @param v 
          * @return Tensor 
          */
-        Tensor operator/(double v);
+        Tensor operator/(double v) const;
 
 
         /**
@@ -288,7 +294,7 @@ class Tensor {
          * @param v 
          * @return Tensor 
          */
-        Tensor operator-(double v);
+        Tensor operator-(double v) const;
 
         /**
          * @brief apply returns a matrix of the same size
@@ -299,6 +305,85 @@ class Tensor {
          */
         Tensor apply(double (*func)(double)) const;
 
+        // UNARY OPERATORS
+
+  
 };
+
+class Matrix : public Tensor {
+
+    public:
+
+        // CONSTRUCTORS/DESTRUCTORS
+        Matrix(int i_rows, int i_cols);
+        Matrix(const Matrix& original);
+        Matrix(const Tensor& original);
+        
+        void loadFrom(string file_name);
+        void saveAs(string file_name);
+      
+        // IO
+        /**
+         * @brief prints Matrix in standard row x col grid
+         * 
+         */
+        void print() const override;
+
+        /**
+         * @brief Get the Num Rows in Matrix
+         * 
+         * @return int 
+         */
+        int getNumRows() const;
+        /**
+         * @brief Get the Num Rows in Matrix
+         * 
+         * @return int 
+         */
+        int getNumCols() const;
+
+        // Binary operators
+        /**
+         * @brief Matrix Multiplication
+         * nxa * axm -> nxm
+         * 
+         * @return Matrix 
+         */
+        Matrix matMul(const Matrix& other) const;
+
+        // UNARY OPERATORS
+        /**
+         * @brief returns a tranposed matrix
+         * 
+         * @return Matrix 
+         */
+        Matrix transpose() const;
+
+        /**
+         * @brief given a n x m matrix, this will return an 1 x m row vector with 
+         * the row index of the maximum value for each column
+         * 
+         * FIGURE OUT IF THIS SHOULD BE GNERALIZED TO A TENSOR
+         * 
+         * @return int 
+         */
+        Matrix argMaxMatrix() const;
+
+
+};
+
+// FOllowing methods written outside of class scope to 
+// avoid circular dependencies
+
+/**
+ * @brief flatten tensor to just a row or column vector matrix
+ * resultant matrix is of size 1x(m*n) or (m*n)x1. The default format
+ * is column or (m*n)x1.
+ * 
+ * @param axis 0 will output a row vector, 1 (default) will output a column vector
+ * @return Matrix 
+ */
+Matrix flatten(const Tensor& t, int axis);
+Matrix flatten(const Tensor&);
 
 #endif
