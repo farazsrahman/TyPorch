@@ -54,3 +54,6 @@ build/
 out/
 out/build/
 [Bb][Uu][Ii][Ll][Dd]
+
+#specific files
+matrixLEGACY.cpp
