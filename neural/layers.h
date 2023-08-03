@@ -4,64 +4,123 @@
 #include <iostream>
 #include <string>
 
-#include "matrix.h"
+#include "./../linalg/linalg.h"
+#include "activation.h"
 using std::string;
-
-
 
 class Layer {
 
-    private:
+    protected:
+
+        // double (*func)(double) activationFunction;
 
         Layer* prevLayer;
         Layer* nextLayer;
 
-        // number of dimensions (size of the shape* member)
-        int numberDimensions;
-        int* shape;
+    
+
 
     public:
+        vector<int> shape;
 
-        // CONSTRUCTORS AND SETUP
-
-        Layer(int numberDimensions, int* shape);
-
-        void setPrevLayer(Layer* prevLayer);
-        void setNextLayer(Layer* prevLayer);
-
-
-        // EXTERNAL METHODS
+        virtual void setPrevLayer(Layer* prevLayer);
+        virtual void setNextLayer(Layer* nextLayer);
 
         /**
          * @brief This method should be called by a Model object or 
-         * by the layer behind it (this Layer's prevLayer) in a Model. 
+         * by this Layer's prevLayer. 
+         * 
          * input should therefore be the original input to the model 
          * or the output of this Layer's prevLayer.
          * 
-         * @param input the input vector Matrix
-         * @return Matrix& a reference to the final output vector Matrix.
+         * @param input the input Tensor
          */
-        void feedForward(const Matrix& input);
+        virtual void feedForward(const Tensor& input);
+
         /**
-         * @brief This method should be called by a Model object or
-         * by the layer in front of it (this Layer's nextLayer). d will 
-         * therefore be the partial of error with respect to this 
-         * layer's output (nextLayer's input).
+         * @brief This method should be called by a Model object or 
+         * this Layer's nextLayer). d will be the partial of error 
+         * with respect to this layer's output (nextLayer's input).
          * 
          * @param d partial derivative to send backwards TO this layer 
          * for back propagation. 
          */
-        void backpropagate(double d);
+        virtual void backPropagate(double d);
 
+
+};
+
+class InputLayer : public Layer {
+    
+    public:
+        InputLayer(vector<int> shape);
+        void setPrevLayer(Layer* i_prevLayer) override;
+        void feedForward(const Tensor& input) override;
+
+};
+
+class OutputLayer : public Layer {
+    
+    public:
+        Tensor lastOutput;
+        OutputLayer();
+        void setPrevLayer(Layer* i_prevLayer) override;
+        void setNextLayer(Layer* i_nextLayer) override;
+        void feedForward(const Tensor&) override;
+        Tensor getLastOutput();
+
+};
+
+class FlattenLayer : public Layer {
+
+    public:
+        // goal is for the flatten layer to automatically
+        // read the size of the layer behind it
+        FlattenLayer();
+        void feedForward(const Tensor& input) override;
+        void setPrevLayer(Layer* i_prevLayer) override;
 
 };
 
 class DenseLayer : public Layer {
 
-    private:
+    protected:
+        vector<int> inputShape;
+        Matrix weights;
+        Matrix biases;
+
+    public: 
+        DenseLayer(int i_size);
+        void setPrevLayer(Layer* i_prevLayer) override;
+        void feedForward(const Matrix& input);
 
 
-        int size;
+
+
+};
+
+
+class Model {
+
+    protected: 
+
+        Layer* inputLayer;
+        Layer* outputLayer;
+
+    public: 
+
+        /**
+         * @brief Construct a new Model object, by 
+         * inputting a vector of layers to be linked 
+         * together
+         * 
+         * @param layers min size = 2, first must be
+         * of type InputLayer, last must be of type
+         * OutputLayer
+         */
+        Model(vector<Layer*> layers);
+
+        
 
 };
 

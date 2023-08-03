@@ -204,6 +204,21 @@ bool Tensor::sameShape(const Tensor& other) const {
 
     return true;
 }
+bool Tensor::hasShape(vector<int> otherShape) const {
+    // TODO: TEST
+    if(otherShape.size() != shape.size()) {
+        return false;
+    }
+
+    for(int i = 0; i < shape.size(); i++) {
+        if(shape[i] != otherShape[i]) {
+            return false;
+        }
+    }
+
+    return true;
+
+}
 bool Tensor::operator==(const Tensor& other) const {
 
     if(!sameShape(other)) {

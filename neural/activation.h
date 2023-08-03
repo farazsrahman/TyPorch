@@ -4,7 +4,8 @@
 #include <iostream>
 #include <string>
 
-#include "matrix.h"
+#include "./../linalg/linalg.h"
+
 
 using namespace std;
 

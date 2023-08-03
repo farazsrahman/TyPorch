@@ -11,11 +11,7 @@ using std::vector;
 class Tensor {
 
     protected:
-
-        // no longer need these because we are using vectors that store size
-        // int numberOfDims;
-        // int size;
-
+    
         vector<double> entries; 
         vector<int> shape;
 
@@ -27,13 +23,14 @@ class Tensor {
          */
         vector<int> distToAdjacentEntry;
 
+
+    public:
+
         /**
          * @brief default constructor for derived classes
          * 
          */
         Tensor();
-
-    public:
 
         // Public for testing purposes
 
@@ -160,6 +157,15 @@ class Tensor {
          * @return false different dimensions
          */
         bool sameShape(const Tensor& other) const;
+        /**
+         * @brief given a shape vector, returns wether 
+         * the matrix has the same shape or not.
+         * 
+         * @param shape 
+         * @return true 
+         * @return false 
+         */
+        bool hasShape(vector<int> shape) const;
         /**
          * @brief Override of equality operator ==. Will
          * return True if matrices are of the same size and have the exact same
@@ -315,6 +321,7 @@ class Matrix : public Tensor {
     public:
 
         // CONSTRUCTORS/DESTRUCTORS
+        Matrix();
         Matrix(int i_rows, int i_cols);
         Matrix(const Matrix& original);
         Matrix(const Tensor& original);
@@ -372,7 +379,7 @@ class Matrix : public Tensor {
 
 };
 
-// FOllowing methods written outside of class scope to 
+// Following methods written outside of class scope to 
 // avoid circular dependencies
 
 /**
