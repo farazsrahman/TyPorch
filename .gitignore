@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Mac Finder related
+.DS_Store
+
 # Compiled Object files
 *.slo
 *.lo
