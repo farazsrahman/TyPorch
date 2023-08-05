@@ -1,5 +1,5 @@
 #include "./../linalg/linalg.h"
-#include "layers.h"
+#include "neural.h"
 #include "activation.h"
 
 using std::string;

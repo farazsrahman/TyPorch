@@ -1,5 +1,5 @@
 #include "./../../linalg/linalg.h"
-#include "./../layers.h"
+#include "./../neural.h"
 #include "./../activation.h"
 #include <vector>
 #include <./gtest/gtest.h> // this shows up as an error but it shouldnt...
