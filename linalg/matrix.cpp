@@ -1,8 +1,11 @@
 #include "linalg.h"
+#include <math.h>
+
 
 using std::string;
 using std::vector;
 using std::cout;
+
 
 Matrix::Matrix(int i_rows, int i_cols) {
 
@@ -24,6 +27,8 @@ Matrix::Matrix(const Matrix& original) : Tensor(original) {
 
 }
 Matrix::Matrix(const Tensor& original) : Tensor(original) {
+
+    // no more to be done
 
 }
 
@@ -47,6 +52,18 @@ int Matrix::getNumRows() const {
 int Matrix::getNumCols() const {
     return shape[1];
 }
+
+
+void Matrix::simpleXavierInit() {
+    srand(time(NULL)); // using time as seed parameter for random generator
+	double min = -1.0 / sqrt(getNumCols());
+	double max = 1.0 / sqrt(getNumCols());
+	
+    for(int i = 0; i < entries.size(); i++) {
+        entries[i] = uniform_distribution(min, max);
+    } 
+}
+
 
 // Binary Operators
 
@@ -77,6 +94,7 @@ Matrix Matrix::matMul(const Matrix& other) const {
 
 }
 
+
 // Unary Operators
 
 Matrix Matrix::transpose() const {
@@ -99,6 +117,7 @@ Matrix Matrix::transpose() const {
 
 
 // Conversion / General Methods
+
 Matrix flatten(const Tensor& t, int axis) {
 
     int length = t.getSize();

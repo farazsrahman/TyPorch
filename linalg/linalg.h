@@ -139,8 +139,6 @@ class Tensor {
          * @brief fills each entry in the Tensor it is called upon
          * with a random float value in range.
          * 
-         * Idk why but this was the very specific distribution that the guy on YouTube used.
-         * 
          * @param n range is within +- 1 / sqrt(n)
          */
         void randomize(int n);
@@ -349,6 +347,28 @@ class Matrix : public Tensor {
          */
         int getNumCols() const;
 
+        /**
+         * @brief fills matrix with random weights where 
+         * weights are randomly choosen from range -1/sqrt(n)
+         * to 1/sqrt(n). This protects from vanishing/exploding gradient
+         * for neural models that use tanh or sigmoidal activation functions     
+         * 
+         * Note: normalXavierInit() is also available.
+         * Note: He initialization (not yet implemented) is better suited
+         * for models using the ReLU activation function.
+         */
+        void simpleXavierInit();
+
+        /**
+         * @brief 
+         * 
+         * Note: simpleXavierInit() is also available.
+         * Note: He initialization (not yet implemented) is better suited
+         * for models using the ReLU activation function.
+         */
+        void normalXavierInit();
+
+
         // Binary operators
         /**
          * @brief Matrix Multiplication
@@ -392,5 +412,12 @@ class Matrix : public Tensor {
  */
 Matrix flatten(const Tensor& t, int axis);
 Matrix flatten(const Tensor&);
+
+/**
+ * @brief Helper for all methods using
+ * a uniform distribution
+ * 
+ */
+double uniform_distribution(double low, double high);
 
 #endif

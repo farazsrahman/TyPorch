@@ -132,6 +132,12 @@ void Tensor::print() const {
 
     int sizeLastDim = shape[shape.size()-1];
     vector<int> coord;
+
+    cout << "Tensor Shape: ";
+    for(int i = 0; i < shape.size() - 1; i++) {
+        cout << shape[i] << " x ";
+    }
+    cout << shape[shape.size()-1] << "";
     
     for(int i = 0; i < entries.size(); i++) {
 
@@ -179,6 +185,7 @@ double uniform_distribution(double low, double high) {
 	int scaled_difference = (int)(difference * scale);
 	return low + (1.0 * (rand() % scaled_difference) / scale);
 }
+
 void Tensor::randomize(int n) {
     srand(time(NULL)); // using time as seed parameter for random generator
 	double min = -1.0 / sqrt(n);
@@ -188,6 +195,9 @@ void Tensor::randomize(int n) {
         entries[i] = uniform_distribution(min, max);
     } 
 }
+
+
+
 
 // EQUALITY OPERATORS
 
