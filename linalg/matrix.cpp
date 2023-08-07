@@ -53,7 +53,6 @@ int Matrix::getNumCols() const {
     return shape[1];
 }
 
-
 void Matrix::simpleXavierInit() {
     srand(time(NULL)); // using time as seed parameter for random generator
 	double min = -1.0 / sqrt(getNumCols());

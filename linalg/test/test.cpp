@@ -67,6 +67,37 @@ TEST(GettersAndSetters, testFill) {
     EXPECT_EQ(m.getEntry(m.getCoordOfIndex(i)), 3);
   }
 }
+TEST(GettersAndSetters, testSetShape) {
+
+  Tensor m;
+  m.setShape({2, 2, 2});
+
+  vector<int> expected;
+
+  expected = {0, 0, 0};
+  EXPECT_EQ(m.getCoordOfIndex(0), expected);
+  expected = {0, 0, 1};
+  EXPECT_EQ(m.getCoordOfIndex(1), expected);
+  expected = {0, 1, 0};
+  EXPECT_EQ(m.getCoordOfIndex(2), expected);
+  expected = {0, 1, 1};
+  EXPECT_EQ(m.getCoordOfIndex(3), expected);
+
+  expected = {1, 0, 0};
+  EXPECT_EQ(m.getCoordOfIndex(4), expected);
+  expected = {1, 0, 1};
+  EXPECT_EQ(m.getCoordOfIndex(5), expected);
+  expected = {1, 1, 0};
+  EXPECT_EQ(m.getCoordOfIndex(6), expected);
+  expected = {1, 1, 1};
+  EXPECT_EQ(m.getCoordOfIndex(7), expected);
+
+  for(int i = 0; i < 8; i++) {
+    m.setEntry(m.getCoordOfIndex(i), i);
+    EXPECT_EQ(m.getEntry(m.getCoordOfIndex(i)), i);
+  }
+
+}
 TEST(IO, testPrint) {
 
   Tensor m({2, 2, 2, 2});
@@ -115,7 +146,7 @@ TEST(EqualityOperators, testStructuralEquality) {
 
 }
 
-// BINARY OPERATORS - TENSOR
+// OPERATORS - TENSOR
 TEST(BinaryTensorOperators, testAdd) {
   
   Tensor a({2, 2});
@@ -238,7 +269,7 @@ TEST(BinaryTensorOperators, testDivide) {
 double sigmoid(double x) {
     return 1.0 / (1.0 + std::exp(-x));
 }
-TEST(BinaryTensorOperators, testApply) {
+TEST(UnaryTensorOperators, testApply) {
 
   Tensor a({2, 2});
   Tensor b({2, 2});
@@ -278,6 +309,13 @@ TEST(BinaryTensorOperators, testApply) {
   EXPECT_TRUE(e == d.apply(sigmoid));
 
 }
+TEST(UnaryTensorOperators, testMean) {
+  Tensor t({2, 3, 1});
+  t.setEntries({1, 2, 3, 4, 5, 6});
+  EXPECT_EQ(t.getMean(), 3.5);
+
+}
+
 
 // ENCAPSULATION
 TEST(EncapsulationTests, testCopyConstructorAndAssignmentOperator) {

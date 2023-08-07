@@ -9,61 +9,7 @@
 using std::string;
 using std::cout;
 
-// CONSTRUCTORS / DESTRUCTORS
-
-Tensor::Tensor() {
-    // all members of tensor are protected or public so the sub classes construcor
-    // can handle the rest
-}
-Tensor::Tensor(vector<int> i_shape) {
-
-    shape = i_shape; // shallow copy
-
-    distToAdjacentEntry.resize(shape.size());
-
-    int dist = 1;
-
-    // the product of all dimensions to the right of the nth dimension will 
-    // be cached to help with retrieving indices from coords and vice versa
-    for(int i = shape.size()-1; i >= 0; i--) {
-        distToAdjacentEntry[i] = dist;
-        dist *= shape[i];
-    }
-
-    entries.resize(dist); 
-}
-
-Tensor::Tensor(const Tensor& original) {
-
-    // shallow copies 
-    shape = original.shape;
-    distToAdjacentEntry = original.distToAdjacentEntry;
-    entries = original.entries;
-
-} // copy constructor (use =operator for already declared tensors)
-
-void Tensor::loadFrom(string file_string) {
-
-    // im goin to cry...
-    printf("ERROR: Tensor load not implemented");
-    exit(EXIT_FAILURE);
-
-} // load from file
-void Tensor::saveAs(string file_string) {
-
-    // im goin to cry...
-    printf("ERROR: Tensor save not implemented");
-    exit(EXIT_FAILURE);
-
-}
-
-Tensor::~Tensor() {
-
-    // all objects are simple types or vectors, so memory is already managed
-
-}
-
-// SETTERS / GETTERS
+// HELPERS
 
 int Tensor::getIndexOfCoord(vector<int> coord) const {
 
@@ -101,6 +47,79 @@ vector<int> Tensor::getCoordOfIndex(int index) const {
 
     return coord;
 }
+/**
+ * @brief returns random double from low to high. I think..
+ * 
+ * @param low 
+ * @param high 
+ * @return double 
+ */
+double uniform_distribution(double low, double high) {
+	double difference = high - low; // The difference between the two
+	int scale = 10000;
+	int scaled_difference = (int)(difference * scale);
+	return low + (1.0 * (rand() % scaled_difference) / scale);
+}
+
+
+// CONSTRUCTORS / DESTRUCTORS
+
+Tensor::Tensor() {
+    // all members of tensor are protected or public so 
+    // the subclasses construcor can handle the rest
+    // this also allows for lazy construction using
+    // the setShape method.
+}
+Tensor::Tensor(vector<int> i_shape) {
+
+    shape = i_shape; // shallow copy
+
+    distToAdjacentEntry.resize(shape.size());
+
+    // the prefix sum of the shape vector will 
+    // be cached to help with retrieving indices 
+    // from coords and vice versa
+
+    int dist = 1;
+    for(int i = shape.size()-1; i >= 0; i--) {
+        distToAdjacentEntry[i] = dist;
+        dist *= shape[i];
+    }
+
+    entries.resize(dist); 
+
+}
+Tensor::Tensor(const Tensor& original) {
+
+    // shallow copies 
+    shape = original.shape;
+    distToAdjacentEntry = original.distToAdjacentEntry;
+    entries = original.entries;
+
+} // copy constructor (use =operator for already declared tensors)
+Tensor::~Tensor() {
+
+    // all objects are simple types or vectors, so memory is already managed
+
+}
+
+void Tensor::loadFrom(string file_string) {
+
+    // im goin to cry...
+    printf("ERROR: Tensor load not implemented");
+    exit(EXIT_FAILURE);
+
+} // load from file
+void Tensor::saveAs(string file_string) {
+
+    // im goin to cry...
+    printf("ERROR: Tensor save not implemented");
+    exit(EXIT_FAILURE);
+
+}
+
+
+// SETTERS / GETTERS
 
 void Tensor::setEntry(vector<int> coord, double v) {
 
@@ -121,7 +140,6 @@ double Tensor::getEntry(vector<int> coord) const {
 
     return entries[getIndexOfCoord(coord)];
 }
-
 void Tensor::setEntries(vector<double> i_entries) {
 
     if(i_entries.size() != getSize()) {
@@ -132,18 +150,30 @@ void Tensor::setEntries(vector<double> i_entries) {
     entries = i_entries;
 
 }
-
-// TODO: CHECK THAT THIS ACUTALLY RETURNS A DEEP COPY OF THE ENTRIES VECOR
 vector<double> Tensor::getEntries() const {
     return entries;
 }
-
-
 int Tensor::getSize() const {
     return entries.size();
 }
 int Tensor::getDimensionality() const {
     return shape.size();
+}
+void Tensor::setShape(vector<int> i_shape) {
+    
+    shape = i_shape; // shallow copy
+
+    distToAdjacentEntry.resize(shape.size());
+    
+    // disToAdjacentEntry is a prefix sum
+    int dist = 1;
+    for(int i = shape.size()-1; i >= 0; i--) {
+        distToAdjacentEntry[i] = dist;
+        dist *= shape[i];
+    }
+
+    entries.resize(dist); 
+
 }
 vector<int> Tensor::getShape() const {
     return shape;
@@ -183,7 +213,7 @@ void Tensor::print() const {
 
 }
 
-// IN-PLACE METHODS - These methods are very straightforward thanks to 1d entries array
+// IN-PLACE METHODS
 
 void Tensor::fill(double v) {
 
@@ -192,21 +222,6 @@ void Tensor::fill(double v) {
     }
 
 }
-
-/**
- * @brief returns random double from low to high. I think..
- * 
- * @param low 
- * @param high 
- * @return double 
- */
-double uniform_distribution(double low, double high) {
-	double difference = high - low; // The difference between the two
-	int scale = 10000;
-	int scaled_difference = (int)(difference * scale);
-	return low + (1.0 * (rand() % scaled_difference) / scale);
-}
-
 void Tensor::randomize(int n) {
     srand(time(NULL)); // using time as seed parameter for random generator
 	double min = -1.0 / sqrt(n);
@@ -216,8 +231,6 @@ void Tensor::randomize(int n) {
         entries[i] = uniform_distribution(min, max);
     } 
 }
-
-
 
 
 // EQUALITY OPERATORS
@@ -270,6 +283,7 @@ bool Tensor::operator!=(const Tensor& other) const {
     
     return !(*this == other); // * is dereferencing this
 }
+
 
 // (TENSOR x TENSOR) BINARY OPERATORS
 
@@ -355,6 +369,57 @@ Tensor Tensor::operator/(const Tensor& other) const {
 
 }
 
+// INPLACE (INCREMENT) OPERATORS - skipped Tests on these...
+
+void Tensor::operator+=(const Tensor& other) {
+    if (!sameShape(other)) {
+        printf("ERROR: dimension mismatch on += operator");
+        exit(EXIT_FAILURE);
+    }
+    
+    vector<double> otherEntries = other.getEntries();
+    
+    for(int i = 0; i < getSize(); i ++) {
+        entries[i] += otherEntries[i];
+    }
+}
+void Tensor::operator-=(const Tensor& other) {
+    if (!sameShape(other)) {
+        printf("ERROR: dimension mismatch on -= operator");
+        exit(EXIT_FAILURE);
+    }
+    
+    vector<double> otherEntries = other.getEntries();
+    
+    for(int i = 0; i < getSize(); i ++) {
+        entries[i] -= otherEntries[i];
+    }
+}
+void Tensor::operator*=(const Tensor& other) {
+    if (!sameShape(other)) {
+        printf("ERROR: dimension mismatch on *= operator");
+        exit(EXIT_FAILURE);
+    }
+    
+    vector<double> otherEntries = other.getEntries();
+    
+    for(int i = 0; i < getSize(); i ++) {
+        entries[i] *= otherEntries[i];
+    }
+}
+void Tensor::operator/=(const Tensor& other) {
+    if (!sameShape(other)) {
+        printf("ERROR: dimension mismatch on /= operator");
+        exit(EXIT_FAILURE);
+    }
+    
+    vector<double> otherEntries = other.getEntries();
+    
+    for(int i = 0; i < getSize(); i ++) {
+        entries[i] /= otherEntries[i];
+    }
+}
+
 
 // (TENSOR x SCALAR) BINARY OPERATORS
 
@@ -410,6 +475,16 @@ Tensor Tensor::apply(double (*func)(double)) const {
 
     return result;
 
+}
+double Tensor::getSum() const {
+    double sum = 0;
+    for(double entry: getEntries()) {
+        sum += entry;
+    }
+    return sum;
+}
+double Tensor::getMean() const {
+    return getSum()/getSize();
 }
 
 

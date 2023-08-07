@@ -26,14 +26,7 @@ class Tensor {
 
     public:
 
-        /**
-         * @brief default constructor for derived classes
-         * 
-         */
-        Tensor();
-
-        // Public for testing purposes
-
+        // HELPER METHODS
         /**
          * @brief Get the Coord Of Index object
          * 
@@ -49,8 +42,14 @@ class Tensor {
          */
         int getIndexOfCoord(vector<int> coord) const; 
 
-        // CONSTRUCTORS / DESTRUCTORS
 
+
+        // CONSTRUCTORS / DESTRUCTORS
+        /**
+         * @brief default constructor for derived classes
+         * 
+         */
+        Tensor();
         /**
          * @brief Construct a new Tensor object
          * 
@@ -58,36 +57,32 @@ class Tensor {
          * @param i_shape specified number entries for each dimension
          */
         Tensor(vector<int> i_shape); // constructor that takes rows/calls and sets to fills Tensor with 0's
-        
         /**
          * @brief Construct a new deep copied Tensor object
          * 
          * @param original the Tensor to be duplicated
          */
         Tensor(const Tensor& original); 
-
-        /**
-         * @brief Construct a new Tensor object from saved TENSOR
-         * 
-         * @param file_name filename in the Tensor_SAVE_DIR 
-         * for Tensor data to be loaded from
-         */
-        void loadFrom(string file_string); // load from file
-        
-        /**
-         * @brief saves Tensor with name file_name in TENSOR_SAVE_DIR
-         * 
-         * @param file_name 
-         */
-        void saveAs(string file_string);
-
         /**
          * @brief Destroy the Tensor object
          * deallocated memory for the entries of the Tensor
          */
         ~Tensor();
+        /**
+         * @brief Construct a new Tensor object from saved TENSOR
+         * NOT IMPLEMENTED YET
+         * @param file_name filename in the Tensor_SAVE_DIR 
+         * for Tensor data to be loaded from
+         */
+        void loadFrom(string file_string); // load from file
+        /**
+         * @brief saves Tensor with name file_name in TENSOR_SAVE_DIR
+         * NOT IMPLEMENTED YET
+         * @param file_name 
+         */
+        void saveAs(string file_string);
 
-        // SETTERS / GETTERS - using vectors allows {c_1, c_2, ...} in line
+        // SETTERS / GETTERS 
         /**
          * @brief Setter method for the entry at the specific coordinate of the matrix
          * takes in the dims parameter to ensure that coordinate has the correct length.
@@ -108,10 +103,7 @@ class Tensor {
          * @param coord
          * @param dims 
          */
-        virtual double getEntry(vector<int> coord) const;
-        
-        // TODO: TEST THESE METHODS
-        
+        virtual double getEntry(vector<int> coord) const;        
         /**
          * @brief Directly set all the Entries object.
          * Well check to ensure that the input vector
@@ -127,8 +119,6 @@ class Tensor {
          * @return vector<double> 
          */
         vector<double> getEntries() const;
-
-
         /**
          * @brief Get the number of entries in the tensor
          * 
@@ -141,6 +131,18 @@ class Tensor {
          * @return int 
          */
         int getDimensionality() const;
+        /**
+         * @brief Set the Shape object
+         * this method will also reconfigure the 
+         * distToAdjacentEntry array which allows,
+         * for proper indexing into the Tensor.
+         * 
+         * NOTE: this can be used as a 
+         * lazy constructor but will NOT
+         * gurantee that all the entries 
+         * are reset to 0.
+         */
+        void setShape(vector<int> i_shape);
         /**
          * @brief Get the shape of the Tensor
          * 
@@ -250,6 +252,34 @@ class Tensor {
          */
         Tensor operator/(const Tensor& other) const;
 
+        // INPLACE (INCREMENT) OPERATORS 
+        
+        /**
+         * @brief element-wise increment operator
+         * 
+         * @param other 
+         */
+        void operator+=(const Tensor& other);
+        /**
+         * @brief element wise decrement operator
+         * 
+         * @param other 
+         */
+        void operator-=(const Tensor& other);
+        /**
+         * @brief element-wise in-place multiply
+         * by operator
+         * 
+         * @param other 
+         */
+        void operator*=(const Tensor& other);
+        /**
+         * @brief element-wise in-place divide 
+         * by operator
+         * 
+         * @param other 
+         */
+        void operator/=(const Tensor& other);
         
 
         // TENSOR - SCALAR BINARY OPERATORS
@@ -287,8 +317,7 @@ class Tensor {
          * @return Tensor 
          */
         Tensor operator/(double v) const;
-
-
+        
         /**
          * @brief returns new summed Tensor
          * 
@@ -326,6 +355,8 @@ class Tensor {
          */
         Tensor operator-(double v) const;
 
+
+        // UNARY OPERATORS
         /**
          * @brief apply returns a matrix of the same size
          * where all entries have undergone a certain operation
@@ -335,7 +366,19 @@ class Tensor {
          */
         Tensor apply(double (*func)(double)) const;
 
-        // UNARY OPERATORS
+        // TENSOR->SCALAR OPERATORS
+        /**
+         * @brief Get the sum of all entries
+         * 
+         * @return double 
+         */
+        double getSum() const;
+        /**
+         * @brief Get the mean of all entries
+         * 
+         * @return double 
+         */
+        double getMean() const;
 
   
 };
@@ -376,8 +419,9 @@ class Matrix : public Tensor {
         /**
          * @brief fills matrix with random weights where 
          * weights are randomly choosen from range -1/sqrt(n)
-         * to 1/sqrt(n). This protects from vanishing/exploding gradient
-         * for neural models that use tanh or sigmoidal activation functions     
+         * to 1/sqrt(n). This protects from vanishing/exploding 
+         * gradient for neural models that use "tanh" or 
+         * "sigmoid" activation functions.    
          * 
          * Note: normalXavierInit() is also available.
          * Note: He initialization (not yet implemented) is better suited
@@ -395,7 +439,7 @@ class Matrix : public Tensor {
         void normalXavierInit();
 
 
-        // Binary operators
+        // BINARY OPERATORS
         /**
          * @brief Matrix Multiplication
          * nxa * axm -> nxm
@@ -422,7 +466,6 @@ class Matrix : public Tensor {
          */
         Matrix argMaxMatrix() const;
 
-
 };
 
 // Following methods written outside of class scope to 
@@ -439,7 +482,6 @@ class Matrix : public Tensor {
  */
 Matrix flatten(const Tensor& t, int axis);
 Matrix flatten(const Tensor&);
-
 
 /**
  * @brief Reshape a flattened matrix back into a tensor of the shape 
