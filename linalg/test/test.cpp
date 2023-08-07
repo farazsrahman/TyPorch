@@ -1,5 +1,6 @@
 #include "./../linalg.h"
 #include <vector>
+#include <cmath>
 #include <./gtest/gtest.h> // this shows up as an error but it shouldnt...
                             // avoid clicking here..
 
@@ -12,7 +13,7 @@ TEST(CoordHelpers, testGetIndexOfCoord) {
   Tensor m({2, 2, 2});
   m.fill(0);
 
-  // these shoul essentiallby increasing
+  // these shoul essentiallby increasingcdcdcdcdcdcdcdcdcddddddddcdcdaws
   // in binary number system
   EXPECT_EQ(m.getIndexOfCoord({0, 0, 0}), 0);
   EXPECT_EQ(m.getIndexOfCoord({0, 0, 1}), 1);
@@ -234,6 +235,9 @@ TEST(BinaryTensorOperators, testDivide) {
     
 
 }
+double sigmoid(double x) {
+    return 1.0 / (1.0 + std::exp(-x));
+}
 TEST(BinaryTensorOperators, testApply) {
 
   Tensor a({2, 2});
@@ -267,6 +271,12 @@ TEST(BinaryTensorOperators, testApply) {
       }) 
     == c);
 
+  Tensor d({1});
+  Tensor e({1});
+  d.setEntries({2.3});
+  e.setEntries({sigmoid(2.3)});
+  EXPECT_TRUE(e == d.apply(sigmoid));
+
 }
 
 // ENCAPSULATION
@@ -286,6 +296,17 @@ TEST(EncapsulationTests, testCopyConstructorAndAssignmentOperator) {
   EXPECT_TRUE(a != c);
 
 }
+TEST(EncapsulationTests, testGetEntries) {
+
+  Tensor t({2});
+  t.setEntries({1, 2});
+
+  t.getEntries()[1] = 4;
+
+  EXPECT_TRUE(t.getEntries()[1] == 2);
+
+}
+
 
 // MATRIX TESTS
 TEST(MatrixTests, testMatrixMultiply) {
@@ -356,5 +377,15 @@ for(int i = 0; i < t.getSize(); i++) {
   EXPECT_TRUE(t.getEntry(t.getCoordOfIndex(i)) == 
               c.getEntry(c.getCoordOfIndex(i)));
 }
+
+}
+
+// IDK if this constitutes good testing lol but its 2am
+TEST(ReshapeTest, testReshape) {
+
+  Tensor t({4, 4, 4}); // ;-;
+  t.randomize(1);
+
+  EXPECT_TRUE(t == reshape(t.getShape(), flatten(t)));
 
 }

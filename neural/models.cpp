@@ -1,21 +1,29 @@
 #include "./../linalg/linalg.h"
 #include "neural.h"
-#include "activation.h"
 
 using std::string;
 using std::vector;
 using std::cout;
 
+// **LOSS FUNCTION**
+double meanSquaredError(double prediction, double actual) {
 
-/**
- * @brief Construct a new Model:: Model object
- * 
- * @param inputShape a shape vector that indicates the shape of the input.
- * @param hiddenLayers a vector of layer objects where that does not
- * include the initial input layer or the final output layer. These
- * will be automatically generated in this method.
- * 
- */
+    return (1/2) * (prediction - actual) ** 2; 
+
+}
+LossFunction::LossFunction(string i_name) {
+    name = i_name;
+    
+    if(i_name == "MSE" || i_name = "Mean Squared Error") {
+
+
+    }
+
+}
+
+
+// **MODEL**
+
 Model::Model(vector<int> shape, vector<Layer*> hiddenLayers) {
 
     inputLayer = new InputLayer(shape);

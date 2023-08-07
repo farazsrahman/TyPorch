@@ -144,3 +144,23 @@ Matrix flatten(const Tensor& t, int axis) {
 Matrix flatten(const Tensor& t) {
     return flatten(t, 1);
 }
+
+Tensor reshape(vector<int> shape, const Matrix& v) {
+
+    int s = 1;
+    for(int i = 0; i < shape.size(); i++) {
+        s *= shape[i];
+    }
+
+    if(s != v.getSize()) {
+        cout << "ERROR: shape and Matrix object size do not match in reshape call\n";
+        exit(EXIT_FAILURE);
+    }
+
+    Tensor result(shape);
+
+    result.setEntries(v.getEntries());
+
+    return result;
+
+}

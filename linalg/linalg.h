@@ -109,6 +109,26 @@ class Tensor {
          * @param dims 
          */
         virtual double getEntry(vector<int> coord) const;
+        
+        // TODO: TEST THESE METHODS
+        
+        /**
+         * @brief Directly set all the Entries object.
+         * Well check to ensure that the input vector
+         * has the same size as the Tensor when instantiated.
+         * 
+         * @param i_entries 
+         */
+        void setEntries(vector<double> i_entries);
+        /**
+         * @brief Directly get all the Entries 
+         * of an object
+         * 
+         * @return vector<double> 
+         */
+        vector<double> getEntries() const;
+
+
         /**
          * @brief Get the number of entries in the tensor
          * 
@@ -121,6 +141,12 @@ class Tensor {
          * @return int 
          */
         int getDimensionality() const;
+        /**
+         * @brief Get the shape of the Tensor
+         * 
+         * @return vector<double> 
+         */
+        vector<int> getShape() const;
         /**
          * @brief neatly prints matrix values to console
          * 
@@ -403,15 +429,32 @@ class Matrix : public Tensor {
 // avoid circular dependencies
 
 /**
- * @brief flatten tensor to just a row or column vector matrix
+ * @brief Flatten tensor to just a row or column vector matrix
  * resultant matrix is of size 1x(m*n) or (m*n)x1. The default format
  * is column or (m*n)x1.
  * 
+ * @param t the input Tensor object to be flattened
  * @param axis 0 will output a row vector, 1 (default) will output a column vector
  * @return Matrix 
  */
 Matrix flatten(const Tensor& t, int axis);
 Matrix flatten(const Tensor&);
+
+
+/**
+ * @brief Reshape a flattened matrix back into a tensor of the shape 
+ * inputted. Essentially creating a Tensor copy of the same size with
+ * the given shape where the actual entries are all in the same order.
+ * (Order of the entries field in the Tensor objects are preserved when
+ * flattening a Tensor).
+ * 
+ * @param shape 0 will output a row vector, 1 (default) will output 
+ * a column vector
+ * @param v the input matrix (usually vector) that is to be reshaped
+ * into a tensor of the shape shape
+ * @return Tensor
+ */
+Tensor reshape(vector<int> shape, const Matrix& v);
 
 /**
  * @brief Helper for all methods using

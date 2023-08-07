@@ -1,6 +1,5 @@
 #include "./../../linalg/linalg.h"
 #include "./../neural.h"
-#include "./../activation.h"
 #include <vector>
 #include <./gtest/gtest.h> // this shows up as an error but it shouldnt...
                            // avoid clicking here..
@@ -13,15 +12,13 @@ TEST(BasicFunctionality, testBasicModelAndFlatten) {
 
     cout << "\n";
 
-    Model m1({3, 3}, {new Layer(), 
-                      new FlattenLayer(), 
-                      new DenseLayer(5), 
-                      new DenseLayer(5), 
-                      new DenseLayer(2)
-                    });
+    Model m1({2, 2}, {new FlattenLayer(),
+                      new DenseLayer(2), 
+                      new ActivationLayer("tanh")
+                      });
 
-    Matrix input(3, 3);
-    input.fill(2.0);
+    Matrix input(2, 2);
+    input.fill(1000.0);
 
     cout << "\nPRINTING INPUT:\n";
     input.print();

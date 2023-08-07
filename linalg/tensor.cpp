@@ -1,6 +1,7 @@
 #include "linalg.h"
 
 #include <math.h>
+#include <cmath>
 
 #define MAXCHAR 100
 #define SAVE_DIR "saved"
@@ -120,13 +121,33 @@ double Tensor::getEntry(vector<int> coord) const {
 
     return entries[getIndexOfCoord(coord)];
 }
+
+void Tensor::setEntries(vector<double> i_entries) {
+
+    if(i_entries.size() != getSize()) {
+        cout << "ERROR: setEntries passed an input of incorrect size \n";
+        exit(EXIT_FAILURE);
+    }
+
+    entries = i_entries;
+
+}
+
+// TODO: CHECK THAT THIS ACUTALLY RETURNS A DEEP COPY OF THE ENTRIES VECOR
+vector<double> Tensor::getEntries() const {
+    return entries;
+}
+
+
 int Tensor::getSize() const {
     return entries.size();
 }
 int Tensor::getDimensionality() const {
     return shape.size();
 }
-
+vector<int> Tensor::getShape() const {
+    return shape;
+}
 
 void Tensor::print() const {
 
