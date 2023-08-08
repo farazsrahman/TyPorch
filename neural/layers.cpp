@@ -37,7 +37,10 @@ void Layer::updateWeights(Optimizer* optim) {
 }
 void Layer::print() const {
     cout << name << ":\n";
-        cout << "\tfinish print method\n";
+        cout << "\tshape: ";
+        for(int i = 0; i < shape.size()-1; i++) cout << shape[i] << " x ";
+        cout << shape[shape.size()-1] << "\n";
+
 }
 
 // **INPUT LAYER**
@@ -189,11 +192,12 @@ void DenseLayer::feedForward(const Tensor& input) {
         exit(EXIT_FAILURE);
     }
 
-    nextLayer->feedForward((weights->matMul(Matrix(input)))); // TODO: REMEMBER TO ADD BACK THE BIASES
+    nextLayer->feedForward((weights->matMul(Matrix(input))) + *biases); 
 
 }
 void DenseLayer::backPropagate(const Tensor& J_output) {
     if (COUT_NOTES) cout << "NOTE: backPropagate called on Dense Layer\n";
+    
     if(J_output.getDimensionality() != 2) {
         cout << "ERROR: non 2d-Tensor passed to backPropagate method of Dense Layer. Expected 2d Matrix\n";
         exit(EXIT_FAILURE);
@@ -230,11 +234,11 @@ void DenseLayer::updateWeights(Optimizer* optim) {
 
 }
 void DenseLayer::print() const {
-    cout << name << ": \n\n";
-    cout << "\t\tmatrix:\n\n";
+    cout << name << ": \n";
+    cout << "\tweights:\n";
     weights->print();
-    // cout << "\tbiases matrix:\n\n";
-    // biases->print();
+    cout << "\tbiases:\n";
+    biases->print();
 }
 
 // **ACTIVATION FUNCTIONS**

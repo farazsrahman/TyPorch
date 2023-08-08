@@ -223,11 +223,9 @@ void Tensor::fill(double v) {
     }
 
 }
-void Tensor::randomize(int n) {
+void Tensor::randomize(double min, double max) {
     srand(time(NULL)); // using time as seed parameter for random generator
-	double min = -1.0 / sqrt(n);
-	double max = 1.0 / sqrt(n);
-	
+
     for(int i = 0; i < entries.size(); i++) {
         entries[i] = uniform_distribution(min, max);
     } 

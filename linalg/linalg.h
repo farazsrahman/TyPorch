@@ -165,11 +165,11 @@ class Tensor {
         void fill(double a);
         /**
          * @brief fills each entry in the Tensor it is called upon
-         * with a random float value in range.
+         * with a uniformly random float value in the range.
          * 
-         * @param n range is within +- 1 / sqrt(n)
+         * @param n range is from min to max
          */
-        void randomize(int n);
+        void randomize(double min, double max);
 
         // EQUALITY OPERATORS
         /**

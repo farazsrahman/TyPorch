@@ -10,15 +10,6 @@ using std::function;
 
 class Optimizer {
 
-    protected:
-        // vector<double> parameters; // see constructor documentation
-        //                            // for exact specifications but
-        //                            // parameters[0] will ALWAYS be
-        //                            // the learning rate. and
-        //                            // parameters[1] will ALWAYS be 
-        //                            // wether or not to average the 
-        //                            // cumaltive gradient
-
     public:
         string name;
         vector<double> parameters;
@@ -56,7 +47,7 @@ class Optimizer {
 class Layer {
     
     protected:
-        
+    
         Tensor lastInput; // for use in calc grad J_input
 
     public:

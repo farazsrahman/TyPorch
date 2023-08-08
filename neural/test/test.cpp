@@ -5,45 +5,50 @@
                            // avoid clicking here..
 
 using std::cout;
-using std::vector;
+using std::vector; 
 
 
 TEST(BasicFunctionality, testLinearFit) {
 
-    Matrix weights(1, 5);
-    weights.setEntries({1.0, 0.2, -0.5, 0.7, 0.05});
+    // THIS MODEL TRAINS ON FITTING LINEAR FUNCTIONS
+    int inputSize = 30;
+    int outputSize = 30;
+
+    Matrix weights(outputSize, inputSize);
+    weights.randomize(-1, 1);
+
+    Matrix biases(outputSize, 1);
+    biases.randomize(-1, 1);
 
     vector<Matrix*> train_x;
     vector<Matrix*> train_y;
 
-    int numExamples = 2000;
+    int numExamples = 2000; 
     for(int i = 0; i < numExamples; i++) {
-        train_x.push_back(new Matrix(5, 1));
-        train_y.push_back(new Matrix(1, 1));
+        train_x.push_back(new Matrix(inputSize, 1));
+        train_y.push_back(new Matrix(outputSize, 1));
 
-        train_x[i]->randomize(1);
+        train_x[i]->randomize(-10, 10);
         // train_x[i]->transpose().print();
 
-        *train_y[i] = weights.matMul(*train_x[i]);
+        *train_y[i] = weights.matMul(*train_x[i]) + biases;
         // train_y[i]->print();
     }
 
-    DenseLayer* denseLayer = new DenseLayer(1);
+    DenseLayer* denseLayer = new DenseLayer(outputSize);
 
     // create Model
-    Model model({5, 1}, 
+    double learningRate = 0.2;
+
+    Model model({inputSize, 1}, 
                 {new FlattenLayer(), denseLayer}, 
                 new LossFunction("MSE"),
-                new Optimizer("GD", {.1, true})
+                new Optimizer("GD", {learningRate, true})
                 );
- 
-    // we will train over numExamples examples
-    // in batches of size batchSize for iter iterations
-    // iter/batchSize batches
-
 
     int i = 0; 
     double totalLoss = 0;
+    double loss = 0;
     int batchSize = 200;
     int iter = 20000;
     for(int batch = 0; i < iter; batch++) {
@@ -52,16 +57,21 @@ TEST(BasicFunctionality, testLinearFit) {
         // train on batch
         cout << "\nBATCH: " << batch << "\n";
         for(int j = 0; j < batchSize; j++) {
-            totalLoss += model.train(*(train_x[i % numExamples]), 
-                                     *(train_y[i % numExamples]));
-
+            loss = model.train(*(train_x[i % numExamples]), 
+                                     *(train_y[i % numExamples]));            
+            totalLoss += loss;
             i++;
         }
         cout << "AVG LOSS: " << totalLoss/batchSize << "\n";
         model.update();
     }
 
-    model.print(); 
-    denseLayer->print();
+    // model.print(); 
+
+    // cout << "TARGET WEIGHT/BIASES: \n";
+    // weights.print();
+    // biases.print(); 
+    // cout << "\n\n";
+    // denseLayer->print();
 
 }  
