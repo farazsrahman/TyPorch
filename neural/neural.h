@@ -20,6 +20,8 @@ class Optimizer {
         //                            // cumaltive gradient
 
     public:
+        string name;
+        vector<double> parameters;
 
         /**
          * @brief Construct a new Optimizer object
@@ -45,7 +47,7 @@ class Optimizer {
         // because I use the capture list, I have to use the declaration from
         // C++ functional library. This might be worth exploring later on.
         // also might be worth updating other functions to match this style.
-        
+
         function<void(Tensor*, Tensor*, int, Tensor*, std::vector<Tensor*>)> updateAlg;
 
 
@@ -54,13 +56,16 @@ class Optimizer {
 class Layer {
     
     protected:
-        string name;
-        Layer* prevLayer;
-        Layer* nextLayer;
+        
         Tensor lastInput; // for use in calc grad J_input
 
     public:
+        // some items moved to public for debugging
+        // might be work cleaning up later.
+        string name;
         vector<int> shape;
+        Layer* prevLayer;
+        Layer* nextLayer;
         virtual void setPrevLayer(Layer* prevLayer);
         virtual void setNextLayer(Layer* nextLayer);
 
@@ -104,6 +109,13 @@ class Layer {
          */
         virtual void updateWeights(Optimizer* optim);
 
+        /**
+         * @brief prints the details of the layer.
+         * for debugging purposes or to see the weights.
+         * 
+         */
+        virtual void print() const;
+
         
 };
 
@@ -114,6 +126,7 @@ class InputLayer : public Layer {
         void setPrevLayer(Layer* i_prevLayer) override;
         void feedForward(const Tensor& input) override;
         void backPropagate(const Tensor& J_output) override;
+        void updateWeights(Optimizer* optim) override;
 
 };
 
@@ -183,6 +196,7 @@ class DenseLayer : public Layer {
         void feedForward(const Tensor& input) override;
         void backPropagate(const Tensor& J_output) override;
         void updateWeights(Optimizer* optim) override;
+        void print() const override;
 
 
 
@@ -218,15 +232,14 @@ class ActivationLayer : public Layer {
 
 };
 
-class CostFunction {
+class LossFunction {
 
     protected:
-        string name;
         double (*loss)(const Tensor&, const Tensor&);
         Tensor (*lossPrime)(const Tensor&, const Tensor&);
 
     public:
-
+        string name;
         /**
          * @brief Construct a new Loss Function object.
          * Similar to Activation Layers, you can pick
@@ -237,9 +250,9 @@ class CostFunction {
          * 
          * @param i_name 
          */
-        CostFunction(string i_name);
-        double getCost(const Tensor& pred, const Tensor& actual) const;
-        Tensor getNegativeGradient(const Tensor& pred, const Tensor& actual) const;
+        LossFunction(string i_name);
+        double getLoss(const Tensor& pred, const Tensor& actual) const;
+        Tensor getGradient(const Tensor& pred, const Tensor& actual) const;
 
 };
 
@@ -250,21 +263,23 @@ class Model {
         InputLayer* inputLayer;
         OutputLayer* outputLayer;
 
-        CostFunction* costFunction;
+        LossFunction* lossFunction;
+        Optimizer* optimizer;
 
     public: 
 
         /**
          * @brief Construct a new Model object, by 
          * inputting the input shape, hiddenLayers, 
-         * costFunction, and optimizer.
+         * LossFunction, and optimizer.
          * 
          * @param shape
          * @param hiddenLayers
-         * @param costFunction
+         * @param LossFunction
          * @param optimizer
          */
-        Model(vector<int> shape, vector<Layer*> hiddenLayers, CostFunction* i_costFunction);
+        Model(vector<int> shape, vector<Layer*> hiddenLayers, 
+                LossFunction* lossFunction, Optimizer* optim);
 
         /**
          * @brief Calls feedForward on the input 
@@ -278,18 +293,36 @@ class Model {
 
         /**
          * @brief Runs forward pass, calculates
-         * the cost and negative gradient, then 
+         * the Loss and negative gradient, then 
          * calls backPropagate on the output 
          * layer to start the backwards pass.
          * 
-         * All layers will update their gradient, 
-         * according to the provided gradient 
-         * aggregation method... ;-;
+         * All layers will update their gradient 
+         * sum field
          * 
          * @param input 
-         * @return returns the prediciton for provided input
+         * @return returns the loss from the 
+         * prediction and target
          */
-        Tensor train(const Tensor& input);
+        double train(const Tensor& input, const Tensor& target);
+
+        /**
+         * @brief At the end of a mini-batch,
+         * after a gradient has been established
+         * this function should be called to update
+         * weights
+         * 
+         */
+        void update();
+
+        /**
+         * @brief Will print all the details
+         * of the model and each layer will
+         * print it's own specific details as
+         * well.
+         * 
+         */
+        void print();
 
 };
 

@@ -6,7 +6,7 @@ using std::string;
 using std::vector;
 using std::cout;
 
-// **LOSS FUNCTION DEFINITIONS** helpers for CostFunction class
+// **LOSS FUNCTION DEFINITIONS** helpers for LossFunction class
 
 /**
  * @brief returns 1/2 (prediction - actual)^2 
@@ -16,7 +16,7 @@ using std::cout;
  * @return double 
  */
 double squaredError(double prediction, double actual) {
-    return (1/2) * pow(prediction - actual, 2); 
+    return 0.5 * pow(prediction - actual, 2); 
 }
 double squaredErrorPrime(double prediction, double actual) {
     return prediction - actual;
@@ -32,6 +32,9 @@ Tensor squaredError(const Tensor& prediction, const Tensor& actual) {
 
     for(int i = 0; i < actual.getSize(); i++) {
         resultEntries[i] = squaredError(predictionEntries[i], actualEntries[i]);
+        // cout << "DEBUG: predictionEntries[i] = " << predictionEntries[i] << "\n"; 
+        // cout << "DEBUG: actualEntries[i] = " << actualEntries[i] << "\n"; 
+        // cout << "DEBUG: resultEntries[i] = " << resultEntries[i] << "\n"; 
     }
     result.setEntries(resultEntries);
 
@@ -51,29 +54,36 @@ Tensor squaredErrorPrime(const Tensor& prediction, const Tensor& actual) {
     return result;
 }
 
-// **COST FUNCTION**
+// **LOSS FUNCTION**
 
-CostFunction::CostFunction(string i_name) {
-    name = i_name;
+LossFunction::LossFunction(string i_name) {
     
     if(i_name == "MSE" || i_name == "Mean Squared Error") {
+        name = "MSE - Mean Squared Error";
+        cout << "NOTE: Setting loss to MSE\n";
+        loss = [](const Tensor& pred,  const Tensor& target) {
+            
+            Tensor lossByElement = squaredError(pred, target);
 
-        loss = [](const Tensor& pred,  const Tensor& actual) {
-            return squaredError(pred, actual).getMean();
+            // cout << "DEBUG: PRINTING LOSS BY ELEMENT\n";
+            // lossByElement.print();
+
+            return lossByElement.getMean();
         };
-        lossPrime = [](const Tensor& pred,  const Tensor& actual) {
-            return squaredErrorPrime(pred, actual)/actual.getSize();
+        lossPrime = [](const Tensor& pred,  const Tensor& target) {
+            return squaredErrorPrime(pred, target) / target.getSize();
         };
 
     }
 
     else if(i_name == "SSE" || i_name == "Sum Squared Error") {
+        name = "SSE - Sum of Squared Error";
 
-        loss = [](const Tensor& pred,  const Tensor& actual) {
-            return squaredError(pred, actual).getSum();
+        loss = [](const Tensor& pred,  const Tensor& target) {
+            return squaredError(pred, target).getSum();
         };
-        lossPrime = [](const Tensor& pred,  const Tensor& actual) {
-            return squaredErrorPrime(pred, actual);
+        lossPrime = [](const Tensor& pred,  const Tensor& target) {
+            return squaredErrorPrime(pred, target);
         };
 
     }
@@ -84,35 +94,37 @@ CostFunction::CostFunction(string i_name) {
     }
 
 }
-double CostFunction::getCost(const Tensor& pred, const Tensor& actual) const {
-    if(pred.getShape() != actual.getShape()) {
-        cout << "ERROR: prediction Tensor and actual Tensor shape mismatch\n";
+double LossFunction::getLoss(const Tensor& pred, const Tensor& target) const {
+    if(pred.getShape() != target.getShape()) {
+        cout << "ERROR: prediction Tensor and target Tensor shape mismatch\n";
         exit(EXIT_FAILURE);
     }
     
-    return loss(pred, actual);
+    return loss(pred, target);
 }
-Tensor CostFunction::getNegativeGradient(const Tensor& pred, const Tensor& actual) const {
+Tensor LossFunction::getGradient(const Tensor& pred, const Tensor& actual) const {
     return lossPrime(pred, actual);
 }
 
 
 // **OPTIMIZER**
 
-Optimizer::Optimizer(string name, vector<double> parameters) {
+Optimizer::Optimizer(string i_name, vector<double> i_parameters) {
+    parameters = i_parameters;
 
-    if(name == "GD") {
-        if(parameters.size() != 2) {
+    if(i_name == "GD") {
+        name = "GD - Gradient Descent (no modifications)";
+        if(i_parameters.size() != 2) {
             cout << "ERROR: incorrect number of prams passed to SGD optimizer\n";
             exit(EXIT_FAILURE);
         }
 
         // [parameters] captures a constant version of parameters for the lambda function
-        updateAlg = [parameters](Tensor* weights, Tensor* accumalatedGrad, int iterSinceLastUpdate,  
+        updateAlg = [i_parameters](Tensor* weights, Tensor* accumalatedGrad, int iterSinceLastUpdate,  
                           Tensor* cache, vector<Tensor*> queue) {
                             
-                            double learningRate = parameters[0];
-                            bool useAvgGrad = parameters[1];
+                            double learningRate = i_parameters[0];
+                            bool useAvgGrad = i_parameters[1];
 
                             // we update the weights using the pointers
 
@@ -139,12 +151,13 @@ Optimizer::Optimizer(string name, vector<double> parameters) {
 
 // **MODEL**
 
-Model::Model(vector<int> shape, vector<Layer*> hiddenLayers, CostFunction* i_costFunction) {
+Model::Model(vector<int> shape, vector<Layer*> hiddenLayers, 
+                LossFunction* i_lossFunction, Optimizer* i_optimizer) {
 
     inputLayer = new InputLayer(shape);
     outputLayer = new OutputLayer();
-    costFunction = i_costFunction;
-    
+    lossFunction = i_lossFunction;
+    optimizer = i_optimizer;
 
     // allowing no hidden layer models for the purposes of testing.
     if(hiddenLayers.size() == 0) {
@@ -184,3 +197,61 @@ Tensor Model::predict(const Tensor& input) {
      return outputLayer->getLastOutput();
 
 }
+
+double Model::train(const Tensor& input, const Tensor& target) {
+
+    Tensor prediction = predict(input);
+
+    // debug cout
+    if(0) {
+        cout << "\n\nTRAIN: INPUT\n"; 
+        input.print();
+
+        cout << "\nTRAIN: PREDICTED\n";
+        prediction.print();
+
+        cout << "\nTRAIN: TARGET\n";
+        target.print();
+
+    }
+
+    double loss = lossFunction->getLoss(prediction, target);
+
+    if(0) {
+        cout << "TRAIN: LOSS = "<< loss <<"\n";
+    }
+
+    Tensor J_output = lossFunction->getGradient(prediction, target);
+    outputLayer->backPropagate(J_output); // this will have all the 
+                                          // layers save their grad
+    return loss;
+}
+
+void Model::update() {
+    outputLayer->updateWeights(optimizer);
+}
+
+void Model::print() {
+
+    cout << "\nMODEL DETAILS:\n";
+    cout << "\tLayer Sequence:\n";
+
+    Layer* curr = inputLayer;
+    while(curr != nullptr) {
+        cout << "\t\t" << curr->name << "\n";
+        curr = curr->nextLayer;
+    }
+    cout << "\tLoss Function:\n";
+    cout << "\t\t" << lossFunction->name << "\n";
+    cout << "\tOptimizer:\n";
+    cout << "\t\t" << optimizer->name << "\n";
+    cout << "\n";
+
+
+    // COMPLETE PRINT FUNCTION FOR EACH LAYER THAN COME BACK;
+    // cout << "LAYER DETAILS:\n"
+    // inputLayer->
+
+}
+
+

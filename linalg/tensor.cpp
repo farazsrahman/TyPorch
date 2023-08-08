@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <cmath>
+#include <random>
 
 #define MAXCHAR 100
 #define SAVE_DIR "saved"
@@ -55,10 +56,10 @@ vector<int> Tensor::getCoordOfIndex(int index) const {
  * @return double 
  */
 double uniform_distribution(double low, double high) {
-	double difference = high - low; // The difference between the two
-	int scale = 10000;
-	int scaled_difference = (int)(difference * scale);
-	return low + (1.0 * (rand() % scaled_difference) / scale);
+	std::random_device rd;   // Obtain a random seed from hardware
+    std::mt19937 gen(rd());  // Seed the Mersenne Twister PRNG
+    std::uniform_real_distribution<> dis(low, high);
+    return dis(gen);
 }
 
 

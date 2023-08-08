@@ -367,13 +367,6 @@ TEST(MatrixTests, testMatrixMultiply) {
   EXPECT_EXIT(a.matMul(d), ::testing::ExitedWithCode(1), ".*");
 
 }
-TEST(MatrixTests, testTransposeFail) {
-
-  Matrix a(2, 3);
-  EXPECT_EXIT(a.transpose(), ::testing::ExitedWithCode(1), ".*");
-
-
-}
 TEST(MatrixTests, testTranspose) {
   Matrix a(3, 3);
   Matrix b(3, 3);
@@ -385,10 +378,16 @@ TEST(MatrixTests, testTranspose) {
             b.setEntry({c, r}, i);
             i++;
         }
-    }
+    }  
 
     EXPECT_TRUE(a.transpose() == b);
 
+    Matrix c(2, 3);
+    c.setEntries({1, 2, 3, 4, 5, 6});
+    Matrix d(3, 2);
+    d.setEntries({1, 4, 2, 5, 3, 6});
+
+    EXPECT_TRUE(c.transpose() == d);
 
 }
 

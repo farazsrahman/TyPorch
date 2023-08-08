@@ -98,16 +98,11 @@ Matrix Matrix::matMul(const Matrix& other) const {
 
 Matrix Matrix::transpose() const {
 
-    if(shape[0] != shape[1]) {
-        cout << "ERROR: Transpose attempted on non-square matrix\n";
-        exit(EXIT_FAILURE);
-    }
-
-    Matrix result(shape[0], shape[1]);
+    Matrix result(shape[1], shape[0]);
 
     for(int r = 0; r < shape[0]; r++) {
         for(int c = 0; c < shape[1]; c++) {  
-            result.setEntry({r, c}, getEntry({c, r}));
+            result.setEntry({c, r}, getEntry({r, c}));
         }
     }
     return result;
