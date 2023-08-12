@@ -1,58 +1,17 @@
 #include "./../linalg/linalg.h"
 #include "neural.h"
+#include "functions.cpp"
 #include <cmath>
+#include <functional>
 
 using std::string;
 using std::vector;
 using std::cout;
+using std::function;
 
-// **LOSS FUNCTION DEFINITIONS** helpers for LossFunction class
+#define OUTPUT_NOTES 0
+#define OUTPUT_WARNINGS 1
 
-/**
- * @brief returns 1/2 (prediction - actual)^2 
- * 
- * @param prediction 
- * @param actual 
- * @return double 
- */
-double squaredError(double prediction, double actual) {
-    return 0.5 * pow(prediction - actual, 2); 
-}
-double squaredErrorPrime(double prediction, double actual) {
-    return prediction - actual;
-}
-Tensor squaredError(const Tensor& prediction, const Tensor& actual) {
-    // we will have an earlier error check to make sure prediction and actual 
-    // are the same shape
-
-    Tensor result(actual.getShape());
-    vector<double> resultEntries(actual.getSize());
-    vector<double> predictionEntries = prediction.getEntries();
-    vector<double> actualEntries = actual.getEntries();
-
-    for(int i = 0; i < actual.getSize(); i++) {
-        resultEntries[i] = squaredError(predictionEntries[i], actualEntries[i]);
-        // cout << "DEBUG: predictionEntries[i] = " << predictionEntries[i] << "\n"; 
-        // cout << "DEBUG: actualEntries[i] = " << actualEntries[i] << "\n"; 
-        // cout << "DEBUG: resultEntries[i] = " << resultEntries[i] << "\n"; 
-    }
-    result.setEntries(resultEntries);
-
-    return result;
-}
-Tensor squaredErrorPrime(const Tensor& prediction, const Tensor& actual) {
-    Tensor result(actual.getShape());
-    vector<double> resultEntries(actual.getSize());
-    vector<double> predictionEntries = prediction.getEntries();
-    vector<double> actualEntries = actual.getEntries();
-
-    for(int i = 0; i < actual.getSize(); i++) {
-        resultEntries[i] = squaredErrorPrime(predictionEntries[i], actualEntries[i]);
-    }
-    result.setEntries(resultEntries);
-
-    return result;
-}
 
 // **LOSS FUNCTION**
 
@@ -60,30 +19,34 @@ LossFunction::LossFunction(string i_name) {
     
     if(i_name == "MSE" || i_name == "Mean Squared Error") {
         name = "MSE - Mean Squared Error";
-        cout << "NOTE: Setting loss to MSE\n";
         loss = [](const Tensor& pred,  const Tensor& target) {
-            
-            Tensor lossByElement = squaredError(pred, target);
-
-            // cout << "DEBUG: PRINTING LOSS BY ELEMENT\n";
-            // lossByElement.print();
-
-            return lossByElement.getMean();
+            return computeElementWise(squaredError, pred, target).getMean();
         };
         lossPrime = [](const Tensor& pred,  const Tensor& target) {
-            return squaredErrorPrime(pred, target) / target.getSize();
+            return computeElementWise(squaredErrorPrime, pred, target) / target.getSize();
         };
 
     }
 
     else if(i_name == "SSE" || i_name == "Sum Squared Error") {
         name = "SSE - Sum of Squared Error";
-
         loss = [](const Tensor& pred,  const Tensor& target) {
-            return squaredError(pred, target).getSum();
+            return computeElementWise(squaredError, pred, target).getSum();
         };
         lossPrime = [](const Tensor& pred,  const Tensor& target) {
-            return squaredErrorPrime(pred, target);
+            return computeElementWise(squaredErrorPrime, pred, target);
+        };
+
+    }
+
+    else if(i_name == "CE" || i_name == "Cross Entropy") {
+        name = "CE - Cross Entropy";
+
+        loss = [](const Tensor& pred,  const Tensor& target) { 
+            return computeElementWise(crossEntropy, pred, target).getSum();
+        };
+        lossPrime = [](const Tensor& pred, const Tensor& target) {
+            return computeElementWise(crossEntropyPrime, pred, target);
         };
 
     }
@@ -99,11 +62,14 @@ double LossFunction::getLoss(const Tensor& pred, const Tensor& target) const {
         cout << "ERROR: prediction Tensor and target Tensor shape mismatch\n";
         exit(EXIT_FAILURE);
     }
-    
     return loss(pred, target);
 }
-Tensor LossFunction::getGradient(const Tensor& pred, const Tensor& actual) const {
-    return lossPrime(pred, actual);
+Tensor LossFunction::getGradient(const Tensor& pred, const Tensor& target) const {
+    if(pred.getShape() != target.getShape()) {
+        cout << "ERROR: prediction Tensor and target Tensor shape mismatch\n";
+        exit(EXIT_FAILURE);
+    }
+    return lossPrime(pred, target);
 }
 
 
@@ -253,5 +219,4 @@ void Model::print() {
     // inputLayer->
 
 }
-
 

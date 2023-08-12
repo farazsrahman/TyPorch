@@ -11,8 +11,8 @@ using std::vector;
 TEST(BasicFunctionality, testLinearFit) {
 
     // THIS MODEL TRAINS ON FITTING LINEAR FUNCTIONS
-    int inputSize = 30;
-    int outputSize = 30;
+    int inputSize = 10;
+    int outputSize = 10;
 
     Matrix weights(outputSize, inputSize);
     weights.randomize(-1, 1);
@@ -20,18 +20,18 @@ TEST(BasicFunctionality, testLinearFit) {
     Matrix biases(outputSize, 1);
     biases.randomize(-1, 1);
 
-    vector<Matrix*> train_x;
-    vector<Matrix*> train_y;
+    vector<Matrix> train_x;
+    vector<Matrix> train_y;
 
     int numExamples = 2000; 
     for(int i = 0; i < numExamples; i++) {
-        train_x.push_back(new Matrix(inputSize, 1));
-        train_y.push_back(new Matrix(outputSize, 1));
+        train_x.emplace_back(inputSize, 1);
+        train_y.emplace_back(outputSize, 1);
 
-        train_x[i]->randomize(-10, 10);
+        train_x[i].randomize(-10, 10);
         // train_x[i]->transpose().print();
 
-        *train_y[i] = weights.matMul(*train_x[i]) + biases;
+        train_y[i] = weights.matMul(train_x[i]) + biases;
         // train_y[i]->print();
     }
 
@@ -57,21 +57,54 @@ TEST(BasicFunctionality, testLinearFit) {
         // train on batch
         cout << "\nBATCH: " << batch << "\n";
         for(int j = 0; j < batchSize; j++) {
-            loss = model.train(*(train_x[i % numExamples]), 
-                                     *(train_y[i % numExamples]));            
+            loss = model.train(train_x[i % numExamples], 
+                               train_y[i % numExamples]);            
             totalLoss += loss;
             i++;
         }
-        cout << "AVG LOSS: " << totalLoss/batchSize << "\n";
+        cout << "AVG LOSS: " << totalLoss / batchSize << "\n";
         model.update();
     }
 
-    // model.print(); 
-
-    // cout << "TARGET WEIGHT/BIASES: \n";
-    // weights.print();
-    // biases.print(); 
-    // cout << "\n\n";
-    // denseLayer->print();
-
 }  
+
+TEST(BasicFunctioinality, testBasicClassification) {
+
+    // THIS MODEL TRAINS ON FITTING A BASIC CLASSIFIER
+    int inputSize = 20;
+    int hiddenSize = 10;
+    int outputSize = 2;
+
+    Matrix weights1(hiddenSize, inputSize);
+    weights1.randomize(-1, 1);
+
+    Matrix biases1(hiddenSize, 1);
+    biases1.randomize(-1, 1);
+
+    Matrix weights2(outputSize, hiddenSize);
+    weights2.randomize(-1, 1);
+
+    Matrix biases2(outputSize, hiddenSize);
+    biases2.randomize(-1, 1);
+
+    vector<Matrix> train_x;
+    vector<Matrix> train_y;
+
+    int numExamples = 2000; 
+    for(int i = 0; i < numExamples; i++) {
+        train_x.emplace_back(inputSize, 1);
+        train_y.emplace_back(outputSize, 1);
+
+        train_x[i].randomize(-10, 10);
+        // train_x[i]->transpose().print();
+
+        train_y[i] = weights1.matMul(train_x[i]) + biases1;
+        train_y[i] = weights1.matMul(train_x[i]) + biases1;
+
+        
+        // train_y[i]->print();
+    }
+
+
+
+}

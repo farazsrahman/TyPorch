@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <functional>
 
 #include "./../linalg/linalg.h"
 using std::string;
@@ -197,8 +198,8 @@ class ActivationLayer : public Layer {
 
     protected: 
         string activationName;
-        Tensor (*activation)(const Tensor& input);
-        Tensor (*activationPrime)(const Tensor& input);   
+        function <Tensor(const Tensor&)> activation;
+        function <Tensor(const Tensor&)> activationPrime;
 
     public: 
         
@@ -214,7 +215,7 @@ class ActivationLayer : public Layer {
          * 
          * @param name 
          */
-        ActivationLayer(string name);
+        ActivationLayer(string i_name);
 
         void feedForward(const Tensor& input) override;
         void backPropagate(const Tensor& J_output) override; 
@@ -226,8 +227,8 @@ class ActivationLayer : public Layer {
 class LossFunction {
 
     protected:
-        double (*loss)(const Tensor&, const Tensor&);
-        Tensor (*lossPrime)(const Tensor&, const Tensor&);
+        function <double(const Tensor&, const Tensor&)> loss;
+        function <Tensor(const Tensor&, const Tensor&)> lossPrime;
 
     public:
         string name;
@@ -316,6 +317,5 @@ class Model {
         void print();
 
 };
-
 
 #endif

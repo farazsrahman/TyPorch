@@ -1,5 +1,6 @@
 #include "./../linalg/linalg.h"
 #include "neural.h"
+#include "functions.cpp"
 #include <cmath>
 
 using std::string;
@@ -8,8 +9,8 @@ using std::cout;
 using std::exp;
 using std::tanh;
 
-const bool COUT_NOTES = false;
-const bool OUTPUT_WARNINGS = true;
+#define OUTPUT_NOTES 0
+#define OUTPUT_WARNINGS 1
 
 // **LAYER**
 
@@ -32,7 +33,7 @@ void Layer::backPropagate(const Tensor& J_output) {
 void Layer::updateWeights(Optimizer* optim) {
     // this general call only needs to be overriden
     // for Layers that actually have weights/biases
-    if (COUT_NOTES) cout << "NOTE: updateWeights called on " << name << "\n";
+    if (OUTPUT_NOTES) cout << "NOTE: updateWeights called on " << name << "\n";
     prevLayer->updateWeights(optim);
 }
 void Layer::print() const {
@@ -53,7 +54,7 @@ void InputLayer::setPrevLayer(Layer* i_prevLayer) {
     prevLayer = nullptr;
 }
 void InputLayer::feedForward(const Tensor& input) {
-    if (COUT_NOTES) cout << "NOTE: feedForward called on Input Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: feedForward called on Input Layer\n";
 
     // this layer is really just a shape check
     if(!input.hasShape(shape)) {
@@ -64,11 +65,11 @@ void InputLayer::feedForward(const Tensor& input) {
     nextLayer->feedForward(input);
 }
 void InputLayer::backPropagate(const Tensor& J_output) {
-    if (COUT_NOTES) cout << "NOTE: backPropagate called on Input Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: backPropagate called on Input Layer\n";
     // nothing else to do here...
 }
 void InputLayer::updateWeights(Optimizer* optim) {
-    if (COUT_NOTES) cout << "NOTE: updateWeights called on " << name << "\n";
+    if (OUTPUT_NOTES) cout << "NOTE: updateWeights called on " << name << "\n";
     // no more to be done
 }
 
@@ -85,13 +86,13 @@ void OutputLayer::setNextLayer(Layer* i_nextLayer) {
     nextLayer = nullptr;
 }
 void OutputLayer::feedForward(const Tensor& input) {
-    if (COUT_NOTES) cout << "NOTE: feedForward called on Output Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: feedForward called on Output Layer\n";
 
     // saves the input tensor as to the lastOutput field
     lastOutput = input;
 }
 void OutputLayer::backPropagate(const Tensor& J_output) {
-    if (COUT_NOTES) cout << "NOTE: backPropagate called on Output Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: backPropagate called on Output Layer\n";
 
     // similar to how inputs feedForward just feed the input forward lol
     prevLayer->backPropagate(J_output);
@@ -121,12 +122,12 @@ void FlattenLayer::setPrevLayer(Layer* i_prevLayer) {
 
 }
 void FlattenLayer::feedForward(const Tensor& input) {
-    if (COUT_NOTES) cout << "NOTE: feedForward called on Flatten Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: feedForward called on Flatten Layer\n";
     
     nextLayer->feedForward(flatten(input));
 }
 void FlattenLayer::backPropagate(const Tensor& J_output) {
-    if (COUT_NOTES) cout << "NOTE: backPropagate called on Flatten Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: backPropagate called on Flatten Layer\n";
 
     // we have to unflatten(reshape) the J_output into the 
     // shape that it was in the prev layer.
@@ -152,7 +153,7 @@ void DenseLayer::setPrevLayer(Layer* i_prevLayer) {
         exit(EXIT_FAILURE);
     }
     
-    if (COUT_NOTES) cout << "NOTE: connecting dense layer to flattened input of size " << inputShape[0] << "\n";
+    if (OUTPUT_NOTES) cout << "NOTE: connecting dense layer to flattened input of size " << inputShape[0] << "\n";
 
     // values
     weights = new Matrix(shape[0], inputShape[0]); 
@@ -184,7 +185,7 @@ void DenseLayer::setPrevLayer(Layer* i_prevLayer) {
 
 }
 void DenseLayer::feedForward(const Tensor& input) {
-    if (COUT_NOTES) cout << "NOTE: feedForward called on Dense Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: feedForward called on Dense Layer\n";
     lastInput = input; // saving for backProp
 
     if(input.getDimensionality() != 2) {
@@ -196,7 +197,7 @@ void DenseLayer::feedForward(const Tensor& input) {
 
 }
 void DenseLayer::backPropagate(const Tensor& J_output) {
-    if (COUT_NOTES) cout << "NOTE: backPropagate called on Dense Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: backPropagate called on Dense Layer\n";
     
     if(J_output.getDimensionality() != 2) {
         cout << "ERROR: non 2d-Tensor passed to backPropagate method of Dense Layer. Expected 2d Matrix\n";
@@ -219,7 +220,7 @@ void DenseLayer::backPropagate(const Tensor& J_output) {
     prevLayer->backPropagate(J_input);
 }
 void DenseLayer::updateWeights(Optimizer* optim) {
-    if (COUT_NOTES) cout << "NOTE: updateWeights called on Dense Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: updateWeights called on Dense Layer\n";
 
     // update state according to given Optimization alg
     optim->updateAlg(weights, sumJ_weights, iterSincelastUpdate, C_weights, Q_weights);
@@ -241,49 +242,48 @@ void DenseLayer::print() const {
     biases->print();
 }
 
-// **ACTIVATION FUNCTIONS**
-double sigmoid(double x) { 
-    return 1.0 / (1.0 + exp(-x)); 
-}
-double sigmoidPrime(double x) { 
-    double sigx = sigmoid(x);
-    return sigx * (1.0 - sigx);
-}
-Tensor sigmoid(const Tensor& input) {
-    return input.apply(sigmoid);
-}
-Tensor sigmoidPrime(const Tensor& input) {
-    return input.apply(sigmoidPrime);
-}
-
-double tanhPrime(double x) {
-    double tanhx = tanh(x);
-    return 1.0 - (tanhx * tanhx);
-}
-Tensor tanh(const Tensor& input) {
-    return input.apply(tanh);
-}
-Tensor tanhPrime(const Tensor& input) {
-    return input.apply(tanhPrime);
-}
 
 // **ACTIVATION LAYER**
 
 ActivationLayer::ActivationLayer(string i_name) {
     name = "Activation Layer";
     activationName = i_name; // i_name is supposed to be name of the function
-    if(i_name == "sigmoid") {
-        activation = &sigmoid;
-        activationPrime = &sigmoidPrime;
-
-    }
-    if(i_name == "tanh") {
+    if (i_name == "sigmoid") {
         
-        activation = &tanh;
-        activationPrime = &tanhPrime;
+        activation = [](const Tensor& input) -> Tensor {
+            return input.apply(sigmoid);
+        };
+        activationPrime = [](const Tensor& input) -> Tensor {
+            return input.apply(sigmoidPrime);
+        };
 
     }
+    else if (i_name == "tanh") {
+        
+        activation = [](const Tensor& input) -> Tensor {
+            return input.apply(tanh);
+        };
+        activationPrime = [](const Tensor& input) -> Tensor {
+            return input.apply(tanhPrime);
+        };
 
+    }
+    else if (i_name == "softmax") {
+
+        activation = [](const Tensor& input) -> Tensor {
+            Tensor result(input.getShape());
+            
+            result.setEntries(softmax(input.getEntries()));
+            return result;
+        };
+        activationPrime = [](const Tensor& input) -> Tensor {
+            Tensor result(input.getShape());
+            
+            result.setEntries(softmaxPrime(input.getEntries())); 
+            return result;    
+        };
+
+    }
     else { 
         cout << "ERROR: \"" << i_name << "\" Activation function not found\n";
         exit(EXIT_FAILURE);
@@ -292,12 +292,12 @@ ActivationLayer::ActivationLayer(string i_name) {
 }
 
 void ActivationLayer::feedForward(const Tensor& input) {
-    if (COUT_NOTES) cout << "NOTE: feedForward called on " << activationName << " Activation Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: feedForward called on " << activationName << " Activation Layer\n";
     lastInput = input; // saving for backProp calc
     nextLayer->feedForward(activation(input));
 }
 void ActivationLayer::backPropagate(const Tensor& J_output) {
-    if (COUT_NOTES) cout << "NOTE: backPropagate called on " << activationName << " Activation Layer\n";
+    if (OUTPUT_NOTES) cout << "NOTE: backPropagate called on " << activationName << " Activation Layer\n";
     // simply multiplying by act derivative for chain rule
     prevLayer->backPropagate(J_output * (activationPrime(lastInput)));
 
