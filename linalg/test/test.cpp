@@ -7,7 +7,7 @@
 using std::cout;
 using std::vector;
 
-// SETTERS / GETTERS + IN-PLACE METHODS
+// SETTERS / GETTERS + IN-PLACE METHODS 
 TEST(CoordHelpers, testGetIndexOfCoord) {
 
   Tensor m({2, 2, 2});
@@ -358,11 +358,15 @@ TEST(MatrixTests, testMatrixMultiply) {
     b.setEntry(b.getCoordOfIndex(i), i-1);
   }
 
-  c.setEntry(c.getCoordOfIndex(0), 1);
+  c.setEntry(c.getCoordOfIndex(0), 1); 
   c.setEntry(c.getCoordOfIndex(1), 2);
   c.setEntry(c.getCoordOfIndex(2), 1);
   c.setEntry(c.getCoordOfIndex(3), 6);
 
+  a.print();
+  b.print();
+  (a.matMul(b)).print();
+ 
   EXPECT_TRUE(a.matMul(b) == c);
   EXPECT_EXIT(a.matMul(d), ::testing::ExitedWithCode(1), ".*");
 
@@ -421,8 +425,72 @@ for(int i = 0; i < t.getSize(); i++) {
 TEST(ReshapeTest, testReshape) {
 
   Tensor t({4, 4, 4}); // ;-;
-  t.randomize(1);
+  t.randomize(-2,2);
 
   EXPECT_TRUE(t == reshape(t.getShape(), flatten(t)));
 
+
 }
+ 
+
+// SPEED TEST 
+
+ 
+
+TEST(SpeedTest, testSpeed) {
+
+  Tensor* p;
+  for(int i = 0; i < 1; i++) {
+
+    p = new Tensor({82324});
+    p->randomize(-1.0, 1.0);
+    delete p;
+
+
+  }
+}  
+
+
+// TEST(SpeedTest, testSpeedNoMP) {
+
+//   Tensor nm({1000, 1000});
+//   nm.randomize(-1, 1);
+ 
+//   // for(int i = 0; i < 10; i++) {
+//   //   nm = nm * nm;
+//   // }
+
+// }  
+
+// TEST(SpeedTest, testSpeedMP) {
+ 
+//   Tensor m({1000, 1000});
+//   m.randomize(-1, 1); 
+
+//   // for(int i = 0; i < 10; i++) {
+//   //   m *= m;
+//   // }
+// }
+
+TEST(SpeedTest, testSameAns) {
+
+  Tensor m({11, 11, 11, 11});
+  Tensor nm({11, 11, 11, 11});
+
+  vector<double> es;
+  es.resize(m.getSize());
+  for(int i = 0; i < m.getSize(); i++) es[i] = i;
+
+  m.setEntries(es);
+  nm.setEntries(es);
+
+  for(int i = 0; i < 3; i++) {
+    nm = nm * nm;
+  }
+    for(int i = 0; i < 3; i++) {
+    m *= m;
+  }
+
+  EXPECT_TRUE(nm == m);
+}
+ 

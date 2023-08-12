@@ -35,10 +35,10 @@
 *.app
 *.sh
 
-#VSCode settings
+# VSCode settings
 /.vscode
 
-#CMake Git Ignore
+# CMake Git Ignore
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -52,11 +52,15 @@ CTestTestfile.cmake
 _deps
 
 
-#build files
+# Build files
 build/
 out/
 out/build/
 [Bb][Uu][Ii][Ll][Dd]
 
-#specific files
-matrixLEGACY.cpp
+# Specific files
+
+# Data miles
+data/
+*.csv
+*.zip

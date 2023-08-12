@@ -2,10 +2,6 @@
 cmake_minimum_required(VERSION 3.13)
 project(linalgtest)
 
-# min requirements for GTEST
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # fetching the GTest library straight from GitHub
 include(FetchContent)
 FetchContent_Declare(
@@ -14,26 +10,23 @@ FetchContent_Declare(
 ) # the above hash may need to be updated time to time ^^
 FetchContent_MakeAvailable(googletest)
 
+# min requirements for GTEST
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
+
+# Enable Testing
 enable_testing()
 
 # main executable for testing
 add_executable(${PROJECT_NAME} test.cpp)
 
-# specifying where to look for directories
+# finding and selecting linalg.a
 target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../build)
-
-target_link_libraries(${PROJECT_NAME}
-
-    PRIVATE
-        linalg
-
-    PUBLIC
-        GTest::gtest_main
-
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE linalg PUBLIC GTest::gtest_main )
 
 # Add the include directories for Google Test
 target_include_directories(${PROJECT_NAME} PRIVATE ${googletest_SOURCE_DIR}/googletest/include)
-
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})

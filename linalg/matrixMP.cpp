@@ -1,11 +1,14 @@
 #include "linalg.h"
 #include <math.h>
+#include <thread>
 #include <functional>
-
 
 using std::string;
 using std::vector;
 using std::cout;
+using std::thread;
+
+#define NUM_THREADS 4 // ideally this should be the same as TensorMP.cpp
 
 
 Matrix::Matrix(int i_rows, int i_cols) {
@@ -66,7 +69,6 @@ void Matrix::simpleXavierInit() {
 
 
 // Binary Operators
-
 Matrix Matrix::matMul(const Matrix& other) const {
 
     if(shape[1] != other.shape[0]) {
@@ -74,24 +76,73 @@ Matrix Matrix::matMul(const Matrix& other) const {
         exit(EXIT_FAILURE);
     }
 
-    Matrix result(shape[0], other.shape[1]);
+    int n_rows = shape[0], n_cols = other.shape[1], n_cols_left = shape[1];
 
-    double sum;
-    for(int i = 0; i < shape[0]; i++) {
-        for(int j = 0; j < other.shape[1]; j++) {
+    Matrix result(n_rows, n_cols); result.fill(0);
 
-            sum = 0.0;
-            for(int k = 0; k < shape[1]; k++) {
-                sum += (getEntry({i, k}) * other.getEntry({k, j}));
-            }
+    vector<double>* result_ep = &(result.entries);  // result entries pointer
+    vector<double> left_e = entries;                // left entries 
+    vector<double> right_e = other.entries;         // right entries 
+    
 
-            result.setEntry({i, j}, sum);
-        }
+    // multi-threading setup
+    int rowsPerThread = n_rows / (NUM_THREADS - 1);
+    int remainingRows = n_rows % (NUM_THREADS - 1);
+    vector<thread> threads; threads.reserve(NUM_THREADS);
 
+    // starting first NUM_THREADS - 1 threads
+    for(int threadNum = 0; threadNum < NUM_THREADS - 1; threadNum++) {
+        threads.emplace_back([threadNum, rowsPerThread, result_ep, &left_e, &right_e, 
+                                n_rows, n_cols, n_cols_left](){
+            
+            // cout << "STARTING THREAD: " << threadNum << "\n";
+
+            int r; double sum;
+            for(int i = 0; i < rowsPerThread; i++) {
+                r = threadNum * rowsPerThread + i;
+
+                
+                for(int c = 0; c < n_cols; c++) {
+                    
+                    sum = 0.0;
+                    for(int k = 0; k < n_cols_left; k++) 
+                        sum += left_e[r * n_cols_left + k] * right_e[k * n_cols + c];
+
+                    (*result_ep)[r * n_cols + c] = sum;
+
+                }
+            } 
+        });
     }
 
-    return result;
+    // starting last thread
+    threads.emplace_back([remainingRows, rowsPerThread, result_ep, &left_e, &right_e, 
+                            n_rows, n_cols, n_cols_left]() {
 
+        // cout << "STARTING THREAD: " << NUM_THREADS - 1 << "\n";
+        
+        int r; double sum;
+        for(int i = 0; i < remainingRows; i++) {
+            r = (NUM_THREADS - 1) * rowsPerThread + i;
+            
+            for(int c = 0; c < n_cols; c++) {
+                sum = 0.0;
+                
+                for(int k = 0; k < n_cols_left; k++) 
+                    sum += left_e[r * n_cols_left + k] * right_e[k * n_cols + c];
+
+                (*result_ep)[r * n_cols + c] = sum;
+
+            }
+        }
+    });
+
+             
+
+    for(auto &thread: threads) thread.join();
+    threads.clear();
+
+    return result;
 }
 
 
@@ -148,7 +199,7 @@ Tensor reshape(vector<int> shape, const Tensor& v) {
     }
 
     if(s != v.getSize()) {
-        cout << "ERROR: shape and input Tensor size do not match in reshape call\n";
+        cout << "ERROR: shape and Matrix object size do not match in reshape call\n";
         exit(EXIT_FAILURE);
     }
 
@@ -159,4 +210,3 @@ Tensor reshape(vector<int> shape, const Tensor& v) {
     return result;
 
 }
-

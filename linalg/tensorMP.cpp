@@ -3,16 +3,17 @@
 #include <math.h>
 #include <cmath>
 #include <random>
+#include <thread>
 #include <functional>
 
 #define MAXCHAR 100
 #define SAVE_DIR "saved"
+#define NUM_THREADS 4
 
 using std::string;
 using std::cout;
 using std::thread;
 using std::function;
-
 
 // HELPERS
 
@@ -108,6 +109,7 @@ Tensor::~Tensor() {
     // all objects are simple types or vectors, so memory is already managed
 
 }
+
 
 // SETTERS / GETTERS
 
@@ -214,10 +216,32 @@ void Tensor::fill(double v) {
 }
 void Tensor::randomize(double min, double max) {
     srand(time(NULL)); // using time as seed parameter for random generator
+    
+    double (*uni_dist)(double, double) = &uniform_distribution;
+    vector<double>* entries_p = &entries; 
 
-    for(int i = 0; i < entries.size(); i++) {
-        entries[i] = uniform_distribution(min, max);
-    } 
+    int n_entries = getSize();
+
+    int entriesPerThread = n_entries / (NUM_THREADS - 1);
+    vector<thread> threads; threads.reserve(NUM_THREADS);
+        
+    for(int t = 0; t < NUM_THREADS; t++) {
+        threads.emplace_back([t, entriesPerThread, entries_p, uni_dist, min, max, n_entries](){
+            
+            int index;
+            for(int i = 0; i < entriesPerThread; i++) {
+
+                index = t * entriesPerThread + i;
+                if(index < n_entries) (*entries_p)[index] = uniform_distribution(min, max);
+
+            }
+
+        });
+    }
+
+    for(auto &thread: threads) thread.join();
+    threads.clear();
+
 }
 
 
@@ -390,12 +414,42 @@ void Tensor::operator*=(const Tensor& other) {
     }
     
     vector<double> otherEntries = other.getEntries();
+    vector<double>* entries_p = &entries;
     
-    for(int i = 0; i < getSize(); i ++) {
-    
-        entries[i] *= otherEntries[i];
+    int entriesPerThread = getSize() / NUM_THREADS;
 
+    vector<thread> threads;
+    threads.reserve(NUM_THREADS + 1);
+        
+    for(int t = 0; t < NUM_THREADS; t++) {
+        threads.emplace_back([t, entriesPerThread, &otherEntries, entries_p](){
+            
+            int index;
+            for(int i = 0; i < entriesPerThread; i++) {
+
+                index = t * entriesPerThread + i;
+                (*entries_p)[index] *= otherEntries[index];
+
+            }
+        });
     }
+
+    // for the remaining elements
+    threads.emplace_back([entriesPerThread, &otherEntries, entries_p](){
+            // cout << "NOTE: STARTING THREAD " << NUM_THREADS << "with " << entriesPerThread << " entries" << "\n";
+
+            int index;
+            int numRemaining = otherEntries.size() - (NUM_THREADS * entriesPerThread);
+            for(int i = 0; i < numRemaining; i ++) {
+
+                index = NUM_THREADS * entriesPerThread + i;
+                (*entries_p)[index] *= otherEntries[index];
+
+            }
+    });
+
+    for(auto &thread: threads) thread.join();
+    threads.clear();
     
 }
 void Tensor::operator/=(const Tensor& other) {
@@ -480,6 +534,7 @@ double Tensor::getMean() const {
 
 
 // CUSTOM BINARY OPERATORS
+
 Tensor computeElementWise(const function<double(double, double)>& lambda,
                           const Tensor& prediction, const Tensor& target) {
 

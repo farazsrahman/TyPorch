@@ -4,9 +4,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <functional>
 
 using std::string;
 using std::vector;
+using std::function;
 
 class Tensor {
 
@@ -23,7 +25,6 @@ class Tensor {
          */
         vector<int> distToAdjacentEntry;
 
-
     public:
 
         // HELPER METHODS
@@ -34,15 +35,13 @@ class Tensor {
          * @return vector<int> 
          */
         vector<int> getCoordOfIndex(int index) const;
-        /**
+        /**+
          * @brief Get the Index Of Coord object
          * 
          * @param coord 
          * @return int 
          */
         int getIndexOfCoord(vector<int> coord) const; 
-
-
 
         // CONSTRUCTORS / DESTRUCTORS
         /**
@@ -68,19 +67,8 @@ class Tensor {
          * deallocated memory for the entries of the Tensor
          */
         ~Tensor();
-        /**
-         * @brief Construct a new Tensor object from saved TENSOR
-         * NOT IMPLEMENTED YET
-         * @param file_name filename in the Tensor_SAVE_DIR 
-         * for Tensor data to be loaded from
-         */
-        void loadFrom(string file_string); // load from file
-        /**
-         * @brief saves Tensor with name file_name in TENSOR_SAVE_DIR
-         * NOT IMPLEMENTED YET
-         * @param file_name 
-         */
-        void saveAs(string file_string);
+
+
 
         // SETTERS / GETTERS 
         /**
@@ -496,7 +484,21 @@ Matrix flatten(const Tensor&);
  * into a tensor of the shape shape
  * @return Tensor
  */
-Tensor reshape(vector<int> shape, const Matrix& v);
+Tensor reshape(vector<int> shape, const Tensor& v);
+
+/**
+ * @brief helper method that takes in a function 
+ * double(double, double), and two tensors. Then
+ * outputs the output Tensor were the output is
+ * the function applied element wise.
+ * 
+ * @param lossFunction 
+ * @param prediction 
+ * @param target 
+ * @return Tensor 
+ */
+Tensor computeElementWise(const function<double(double, double)>& lambda,
+                            const Tensor& t1, const Tensor& t2);
 
 /**
  * @brief Helper for all methods using
