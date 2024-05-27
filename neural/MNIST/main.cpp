@@ -55,7 +55,7 @@ int main() {
 
     Model model({28, 28},  {new FlattenLayer(), 
                             new DenseLayer(200),
-                            new ActivationLayer("sigmoid"),
+                            new ActivationLayer("ReLU"),
                             new DenseLayer(10),
                             new ActivationLayer("softmax")},
 

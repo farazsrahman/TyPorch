@@ -60,7 +60,7 @@ out/build/
 
 # Specific files
 
-# Data miles
+# Data Files
 data/
 *.csv
 *.zip

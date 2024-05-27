@@ -36,6 +36,12 @@ inline double sigmoidPrime(double x) {
     double sigx = sigmoid(x);
     return sigx * (1.0 - sigx);
 }
+inline double ReLU(double x) {
+    return x > 0 ? x : 0;
+}
+inline double ReLUPrime(double x) {
+    return x > 0 ? 1 : 0;
+}
 inline double tanhPrime(double x) {
     double tanhx = tanh(x);
     return 1.0 - (tanhx * tanhx);

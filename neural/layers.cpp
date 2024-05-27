@@ -284,6 +284,22 @@ ActivationLayer::ActivationLayer(string i_name) {
         };
 
     }
+    else if (i_name == "ReLU") {
+    
+        activation = [](const Tensor& input) -> Tensor {
+            return input.apply(ReLU);
+        };
+        activationPrime = [](const Tensor& input) -> Tensor {
+            return input.apply(ReLUPrime);
+        };
+
+    }
+
+
+
+
+
+
     else { 
         cout << "ERROR: \"" << i_name << "\" Activation function not found\n";
         exit(EXIT_FAILURE);
