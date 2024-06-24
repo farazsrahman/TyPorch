@@ -78,8 +78,8 @@ Tensor LossFunction::getGradient(const Tensor& pred, const Tensor& target) const
 Optimizer::Optimizer(string i_name, vector<double> i_parameters) {
     parameters = i_parameters;
 
-    if(i_name == "GD") {
-        name = "GD - Gradient Descent (no modifications)";
+    if(i_name == "SGD") {
+        name = "SGD - Stochastic Gradient Descent (no modifications)";
         if(i_parameters.size() != 2) {
             cout << "ERROR: incorrect number of prams passed to SGD optimizer\n";
             exit(EXIT_FAILURE);

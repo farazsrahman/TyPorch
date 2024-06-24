@@ -249,7 +249,7 @@ ActivationLayer::ActivationLayer(string i_name) {
     name = "Activation Layer";
     activationName = i_name; // i_name is supposed to be name of the function
     if (i_name == "sigmoid") {
-        
+
         activation = [](const Tensor& input) -> Tensor {
             return input.apply(sigmoid);
         };
@@ -295,10 +295,18 @@ ActivationLayer::ActivationLayer(string i_name) {
 
     }
 
-
-
-
-
+    else if (i_name == "DUMMY") { 
+        cout << "ALERT: Using DUMMY Activation Function";
+        
+        activation = [](const Tensor& input) -> Tensor {
+            return input; // map from x_i -> x_i
+        };
+        activationPrime = [](const Tensor& input) -> Tensor {
+            Tensor result(input.getShape());
+            result.fill(1.0);
+            return result; // for every input the derivative is 0
+        };
+    }
 
     else { 
         cout << "ERROR: \"" << i_name << "\" Activation function not found\n";
@@ -316,7 +324,6 @@ void ActivationLayer::backPropagate(const Tensor& J_output) {
     if (OUTPUT_NOTES) cout << "NOTE: backPropagate called on " << activationName << " Activation Layer\n";
     // simply multiplying by act derivative for chain rule
     prevLayer->backPropagate(J_output * (activationPrime(lastInput)));
-
 }
 
 
