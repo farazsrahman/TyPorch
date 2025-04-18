@@ -4,6 +4,48 @@ TyPorch is a C++ library for implementing and training neural networks, featurin
 1. A linear algebra library (`linalg`) for tensor and matrix operations
 2. A neural network library (`neural`) for building and training neural networks
 
+## Installation
+
+### Prerequisites
+- C++ compiler with C++14 support
+- CMake (version 3.13 or higher)
+- Make
+
+### Installation Steps
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/TyPorch.git
+cd TyPorch
+```
+
+2. Install CMake (if not already installed):
+```bash
+# On macOS
+brew install cmake
+
+# On Ubuntu/Debian
+sudo apt-get install cmake
+
+# On Windows (using Chocolatey)
+choco install cmake
+```
+
+3. Build the libraries:
+```bash
+# Build linalg library
+cd linalg
+mkdir build && cd build
+cmake ..
+make
+
+# Build neural library
+cd ../../neural
+mkdir build && cd build
+cmake ..
+make
+```
+
 ## Features
 
 ### Linear Algebra Library (`linalg`)
@@ -46,48 +88,6 @@ TyPorch is a C++ library for implementing and training neural networks, featurin
   - Forward and backward propagation
   - Weight updates
   - Model inspection and debugging
-
-## Installation
-
-### Prerequisites
-- C++ compiler with C++14 support
-- CMake (version 3.13 or higher)
-- Make
-
-### Installation Steps
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/TyPorch.git
-cd TyPorch
-```
-
-2. Install CMake (if not already installed):
-```bash
-# On macOS
-brew install cmake
-
-# On Ubuntu/Debian
-sudo apt-get install cmake
-
-# On Windows (using Chocolatey)
-choco install cmake
-```
-
-3. Build the libraries:
-```bash
-# Build linalg library
-cd linalg
-mkdir build && cd build
-cmake ..
-make
-
-# Build neural library
-cd ../../neural
-mkdir build && cd build
-cmake ..
-make
-```
 
 ## Testing
 
