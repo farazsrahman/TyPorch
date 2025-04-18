@@ -121,7 +121,7 @@ TEST(BasicFunctionality, testLinearReLUFit) {
                     new ActivationLayer("ReLU")
                 }, 
                 new LossFunction("MSE"),
-                new Optimizer("GD", {learningRate, true})
+                new Optimizer("SGD", {learningRate, true})
                 );
 
     int i = 0; 
