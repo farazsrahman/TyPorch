@@ -61,6 +61,4 @@ out/build/
 # Specific files
 
 # Data Files
-data/
-*.csv
 *.zip
