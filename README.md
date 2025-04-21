@@ -10,16 +10,53 @@ TyPorch is a C++ library for implementing and training neural networks, featurin
 - C++ compiler with C++14 support
 - CMake (version 3.13 or higher)
 - Make
+- Git LFS (for downloading training data)
 
-### Installation Steps
+### Git LFS Setup
+This repository uses Git Large File Storage (LFS) for managing training datasets. To properly clone and use the repository:
 
-1. Clone the repository:
+1. Install Git LFS:
+```bash
+# On macOS
+brew install git-lfs
+
+# On Ubuntu/Debian
+sudo apt-get install git-lfs
+
+# On Windows (using Chocolatey)
+choco install git-lfs
+```
+
+2. Enable Git LFS:
+```bash
+git lfs install
+```
+
+3. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/TyPorch.git
 cd TyPorch
 ```
 
-2. Install CMake (if not already installed):
+4. Pull LFS files (if they weren't downloaded during clone):
+```bash
+git lfs pull
+```
+
+> **Note**: If you clone the repository without Git LFS installed, you'll still get the code, but the data files will be pointer files instead of actual content. If you try to run the MNIST examples without proper LFS setup, you'll get errors when the code tries to read the data files.
+
+### Alternative Data Setup
+If you don't want to use Git LFS, you can manually download the required datasets:
+1. Download the MNIST dataset from [source URL]
+2. Place the following files in the `data/` directory:
+   - `mnist_binary_train.csv`
+   - `mnist_binary_test.csv`
+   - `mnist_train.csv`
+   - `mnist_test.csv`
+
+### Building the Libraries
+
+1. Install CMake (if not already installed):
 ```bash
 # On macOS
 brew install cmake
@@ -31,7 +68,7 @@ sudo apt-get install cmake
 choco install cmake
 ```
 
-3. Build the libraries:
+2. Build the libraries:
 ```bash
 # Build linalg library
 cd linalg
