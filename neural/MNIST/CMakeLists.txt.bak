@@ -1,0 +1,27 @@
+# Neural network library build script
+cmake_minimum_required(VERSION 3.13)
+project(mnist_train)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add source files for the neural network library
+set(NEURAL_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../neural.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../models.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../layers.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../functions.cpp
+)
+
+# Main executable for training
+add_executable(${PROJECT_NAME} train_mnist.cpp ${NEURAL_SOURCES})
+
+# Specifying where to look for directories
+target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../build ${CMAKE_CURRENT_SOURCE_DIR}/../../linalg/build)
+
+# Link against the linalg library
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        linalg
+)
